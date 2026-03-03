@@ -1,50 +1,49 @@
-import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
-import StartLayout from "./src/layout/StartLayout";
-import {useColorScheme} from "react-native";
-import { useState, useEffect } from "react";
-import {useFonts} from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
-import "react-native-reanimated";
-import * as SystemUI from "expo-system-ui";
+import React, { useEffect, useState, useCallback } from 'react';
+import { View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui'; // Импортлох шаардлагатай
 
-SplashScreen.setOptions({duration: 600, fade: true});
-SplashScreen.preventAutoHideAsync();
+// Splash-ийг барьж үлдэх (Global scope-д байх нь илүү найдвартай)
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
-  const color = useColorScheme();
-  SystemUI.setBackgroundColorAsync(
-    color === "light"
-      ? "#ff1119"
-      : color === "dark"
-        ? "rgb(50,50,50)"
-        : "#ff1119",
-  );
-  const [loaded, error] = useFonts({
-    "Font-Regular": require("./src/assets/fonts/Commissioner-Regular.ttf"),
-    "Font-Thin": require("./src/assets/fonts/Commissioner-Thin.ttf"),
-    "Font-Light": require("./src/assets/fonts/Commissioner-Light.ttf"),
-    "Font-ExtraLight": require("./src/assets/fonts/Commissioner-ExtraLight.ttf"),
-    "Font-Medium": require("./src/assets/fonts/Commissioner-Medium.ttf"),
-    "Font-SemiBold": require("./src/assets/fonts/Commissioner-SemiBold.ttf"),
-    "Font-ExtraBold": require("./src/assets/fonts/Commissioner-ExtraBold.ttf"),
-    "Font-Bold": require("./src/assets/fonts/Commissioner-Bold.ttf"),
-    "Font-Black": require("./src/assets/fonts/Commissioner-Black.ttf"),
-  });
-
-  const [isFontLoad, setIsFontLoad] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (loaded || error) {
-      setIsFontLoad(true);
+    async function prepare() {
+      try {
+        // Native түвшний арын өнгийг улаан болгох (Харлахаас сэргийлнэ)
+        await SystemUI.setBackgroundColorAsync("#ff1119");
+        
+        // 5 секунд хүлээх
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setIsReady(true);
+      }
     }
-  }, [loaded, error]);
+    prepare();
+  }, []);
 
-  if (!loaded && !error) {
-    return null;
+  const onLayoutRootView = useCallback(async () => {
+    if (isReady) {
+      // Апп-ын Layout бэлэн болмогц нуух
+      await SplashScreen.hideAsync();
+    }
+  }, [isReady]);
+
+  if (!isReady) {
+    //null буцаахын оронд ижил өнгөтэй View буцаавал харлахгүй
+    return <View style={{ flex: 1, backgroundColor: "#ff1119" }} />;
   }
+
   return (
-    <SafeAreaProvider>
-        <StartLayout isFontLoad={isFontLoad} />
-    </SafeAreaProvider>
+    <View 
+      style={{ flex: 1, backgroundColor: "#fff" }} 
+      onLayout={onLayoutRootView}
+    >
+      {/* StartLayout-аа энд дуудна */}
+    </View>
   );
 }

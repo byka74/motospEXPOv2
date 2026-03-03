@@ -8,8 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "gitlog": "git log --all --graph --decorate --oneline"
+    "lint": "expo lint"
   },
   "private": true,
   "devDependencies": {
