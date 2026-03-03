@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "checkJs": false,
+    "paths": {
+      "*": ["src/*"]
+    }
+  },
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+}
