@@ -10,7 +10,7 @@ export const useUserStore = create((set) => ({
 }));
 
 export const useThemeStore = create((set) => ({
-  isLight: Appearance.getColorScheme() === "light" ? true : false,
+  isLight: true,
   setLight: (data) => set({ isLight: data }),
   theme: getItem("theme") ?? "auto",
 }));

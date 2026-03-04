@@ -8,7 +8,11 @@ export default {
     scheme: "motospmn",
     userInterfaceStyle: "automatic",
     jsEngine: "hermes",
-    backgroundColor: "#ffffff",
+    splash: {
+      image: "./src/assets/icons/splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#ff1119",
+    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.motospmn.app",
@@ -37,16 +41,15 @@ export default {
       [
         "expo-splash-screen",
         {
-          backgroundColor: "#ff1119",
           image: "./src/assets/icons/splash-icon.png",
           resizeMode: "contain",
-          imageWidth: 200,
+          backgroundColor: "#ff1119",
           dark: {
-            backgroundColor: '#282828',
             image: "./src/assets/icons/splash-icon.png",
             resizeMode: "contain",
-            imageWidth: 200,
-          }
+            backgroundColor: "#282828",
+          },
+          imageWidth: 100,
         },
       ],
       [
@@ -60,6 +63,7 @@ export default {
       ],
       "expo-font",
       "expo-secure-store",
+      "expo-image",
     ],
     experiments: {typedRoutes: false, reactCompiler: false},
   },
