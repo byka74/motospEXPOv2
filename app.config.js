@@ -4,11 +4,11 @@ export default {
     slug: "motospmn-app",
     version: "1.0.1",
     orientation: "portrait",
-    icon: "./src/assets/icons/icon.png",
+    icon: "./src/assets/icons/splash-icon.png",
     scheme: "motospmn",
     userInterfaceStyle: "automatic",
     jsEngine: "hermes",
-    backgroundColor: "#ff1119",
+    backgroundColor: "#ffffff",
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.motospmn.app",
@@ -40,7 +40,13 @@ export default {
           backgroundColor: "#ff1119",
           image: "./src/assets/icons/splash-icon.png",
           resizeMode: "contain",
-          imageWidth: 200
+          imageWidth: 200,
+          dark: {
+            backgroundColor: '#282828',
+            image: "./src/assets/icons/splash-icon.png",
+            resizeMode: "contain",
+            imageWidth: 200,
+          }
         },
       ],
       [
