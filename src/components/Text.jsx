@@ -29,7 +29,7 @@ export const Text = memo(
   (props) => {
     const {
       style = null,
-      animate = null,
+      animate,
       children,
       duration = null,
       syncLight,
@@ -56,6 +56,11 @@ export const Text = memo(
       if (typeof animate?.fontSize === 'number')
         finalStyle.fontSize = animate.fontSize;
 
+      finalStyle.fontFamily = 'Regular';
+      finalStyle.includeFontPadding = false;
+      console.log(finalStyle?.lineHeight)
+      if (finalStyle?.lineHeight == null) finalStyle.lineHeight = finalStyle.fontSize;
+
       return finalStyle;
     }, [style, animate, isLight, syncLight]);
 
@@ -80,7 +85,7 @@ export const Text = memo(
         {children}
       </AnimatedReactText>
     );
-  }
+  },
 );
 
 Text.displayName = 'CustomTextComponent';

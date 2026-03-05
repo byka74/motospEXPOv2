@@ -1,8 +1,4 @@
-import {
-  Text as ReactText,
-  TextInput as ReactTextInput,
-  View,
-} from 'react-native';
+import { TextInput as ReactTextInput, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,11 +6,11 @@ import Animated, {
   useSharedValue,
   cubicBezier,
 } from 'react-native-reanimated';
-
-import { useThemeStore } from '../zustand/context';
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
 
-const AnimatedText = Animated.createAnimatedComponent(ReactText);
+import { useThemeStore } from '../zustand/context';
+import { Text } from './Text';
+
 const AnimatedTextInput = Animated.createAnimatedComponent(ReactTextInput);
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -48,12 +44,14 @@ export const TextInput = memo(
       duration = null,
       onBlur = () => {},
       onFocus = () => {},
+      onChangeText = (text) => {},
       syncLight,
       ...restProps
     } = props;
 
     const isLight = useThemeStore((state) => state.isLight);
     const [isFocus, setFocus] = useState(false);
+    const value = useRef('');
 
     return (
       <AnimatedView
@@ -66,13 +64,19 @@ export const TextInput = memo(
         ]}
       >
         <AnimatedTextInput
-          style={[{ padding: 25, fontSize: 12 }]}
+          style={[{ padding: 25, fontSize: 12, lineHeight: 12 }]}
           placeholder={placeholder}
+          includeFontPadding={false}
+          onChangeText={(text) => {
+            value.current = text;
+            onChangeText(text);
+          }}
           onFocus={() => {
             setFocus(true);
             onFocus();
           }}
-          onBlur={() => {
+          onBlur={(e) => {
+            if(value.current.length === 0)
             setFocus(false);
             onBlur();
           }}
@@ -81,25 +85,26 @@ export const TextInput = memo(
         >
           {children}
         </AnimatedTextInput>
-        <AnimatedText
-          style={[
-            {
-              position: 'absolute',
-              fontSize: 12,
-              transform: [
-                { translateX: 25 },
-                { translateY: isFocus ? 10 : 25 },
-                { scale: isFocus ? 0.75 : 1 },
-              ],
-              transformOrigin: 'left top',
-            },
-          ]}
+        <Text
+          style={{
+            position: 'absolute',
+            fontSize: 12,
+            transformOrigin: 'left top',
+          }}
+          animate={{
+            transform: [
+              { translateX: 25 },
+              { translateY: isFocus ? 10 : 25 },
+              { scale: isFocus ? 0.75 : 1 },
+            ],
+          }}
+          duration={500}
         >
           {placeholder}
-        </AnimatedText>
+        </Text>
       </AnimatedView>
     );
-  }
+  },
 );
 
 TextInput.displayName = 'CustomTextInputComponent';

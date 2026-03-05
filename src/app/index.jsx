@@ -66,9 +66,17 @@ export default function Index() {
               duration={3000}
               syncLight
             >
-              1
+              {'Хэл бол ус\nХөл бол чулуу'}
             </Text>
-            <TextInput onFocus={()=>{console.log('Hello!')}} placeholder='hello'></TextInput>
+            <TextInput
+              onFocus={() => {
+                console.log('Hello!');
+              }}
+              onChangeText={(text) => {
+                console.log(text);
+              }}
+              placeholder="Имэйл хаяг"
+            ></TextInput>
             <Pressable
               onPress={() => {
                 setAnimState((prev) => !prev);

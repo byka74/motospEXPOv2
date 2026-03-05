@@ -57,7 +57,17 @@ export default {
           enableBackgroundRemoteNotifications: true,
         },
       ],
-      /* [ */'expo-font', /* { fonts: ['./src/assets/fonts/Commissioner-Regular.ttf'] }], */
+      [
+        'expo-font',
+        {
+          fonts: [
+            './src/assets/fonts/GoogleSans-Regular.ttf',
+            './src/assets/fonts/GoogleSans-Medium.ttf',
+            './src/assets/fonts/GoogleSans-SemiBold.ttf',
+            './src/assets/fonts/GoogleSans-Bold.ttf',
+          ],
+        },
+      ],
       'expo-secure-store',
       'expo-image',
     ],
