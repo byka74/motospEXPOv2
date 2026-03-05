@@ -2,10 +2,11 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "jsx": "react-jsx",
+    "jsx": "react-native",
     "moduleResolution": "node",
     "baseUrl": "./",
-    "checkJs": false,
+    "checkJs": true,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "*": ["src/*"]
     }

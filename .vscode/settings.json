@@ -1,0 +1,8 @@
+{
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "npm-intellisense.packageSubfoldersIntellisense": true,
+    "npm-intellisense.scanDevDependencies": true,
+    "npm-intellisense.showBuildInLibs": true,
+    "notebook.defaultFormatter": "esbenp.prettier-vscode"
+}
