@@ -58,15 +58,17 @@ export default function Index() {
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
             <Text
+            
               animate={{
                 transformOrigin: 'bottom center',
                 transform: [{ scale: animState ? 5 : 1 }],
                 opacity: animState ? 1 : 0,
+                fontFamily: 'regular',
               }}
-              duration={3000}
+              duration={500}
               syncLight
             >
-              {'Хэл бол ус\nХөл бол чулуу'}
+              {'Хэл бол ус 123\nХөл бол чулуу'}
             </Text>
             <TextInput
               onFocus={() => {
@@ -75,6 +77,7 @@ export default function Index() {
               onChangeText={(text) => {
                 console.log(text);
               }}
+              syncLight
               placeholder="Имэйл хаяг"
             ></TextInput>
             <Pressable

@@ -12,6 +12,10 @@ export default function RootLayout() {
     Medium: require('../assets/fonts/GoogleSans-Medium.ttf'),
     SemiBold: require('../assets/fonts/GoogleSans-SemiBold.ttf'),
     Bold: require('../assets/fonts/GoogleSans-Bold.ttf'),
+    regular: require('../assets/fonts/GoogleSans-Regular.ttf'),
+    medium: require('../assets/fonts/GoogleSans-Medium.ttf'),
+    semibold: require('../assets/fonts/GoogleSans-SemiBold.ttf'),
+    bold: require('../assets/fonts/GoogleSans-Bold.ttf'),
     // app.config.js дээр заасан нэртэйгээ ижил байх ёстой
   });
 

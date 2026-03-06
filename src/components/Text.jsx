@@ -40,9 +40,18 @@ export const Text = memo(
 
     // Стилийн тооцооллыг useMemo-д багтаавал илүү цэвэрхэн
     const memoizedStyle = useMemo(() => {
-      const finalStyle = { ...style, ...animate };
+      const mergeStyle = { ...style, ...animate };
 
-      finalStyle.fontSize = 12;
+      const defaultStyle = {
+        fontSize: 12,
+        lineHeight: mergeStyle.fontSize ? mergeStyle.fontSize * 1.1 : 12 * 1.1,
+        includeFontPadding: false,
+        fontFamily: mergeStyle.fontFamily ? mergeStyle.fontFamily : 'Regular',
+      };
+
+      const finalStyle = { ...defaultStyle, ...mergeStyle };
+
+      finalStyle.includeFontPadding = false;
 
       if (syncLight) {
         finalStyle.color = isLight ? 'rgb(0, 0, 0)' : 'rgb(255,255,255)';
@@ -51,15 +60,6 @@ export const Text = memo(
       // Сүүлийн ирсэн color утга өмнөхүүдийг дарна
       if (typeof style?.color === 'string') finalStyle.color = style.color;
       if (typeof animate?.color === 'string') finalStyle.color = animate.color;
-      if (typeof style?.fontSize === 'number')
-        finalStyle.fontSize = style.fontSize;
-      if (typeof animate?.fontSize === 'number')
-        finalStyle.fontSize = animate.fontSize;
-
-      finalStyle.fontFamily = 'Regular';
-      finalStyle.includeFontPadding = false;
-      console.log(finalStyle?.lineHeight)
-      if (finalStyle?.lineHeight == null) finalStyle.lineHeight = finalStyle.fontSize;
 
       return finalStyle;
     }, [style, animate, isLight, syncLight]);
@@ -85,7 +85,7 @@ export const Text = memo(
         {children}
       </AnimatedReactText>
     );
-  },
+  }
 );
 
 Text.displayName = 'CustomTextComponent';
