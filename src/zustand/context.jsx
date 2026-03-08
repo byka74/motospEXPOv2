@@ -34,3 +34,19 @@ export const useThemeStore = create((set) => ({
   setLight: (data) => set({ isLight: data }),
   theme: getItem('theme') ?? 'auto',
 }));
+
+/**
+ * @typedef {object} GlobalState
+ * @property {number} index - Одоогийн индекс
+ * @property {function(number): void} setIndex - Индекс шинэчлэх функц
+ * @property {number} navigatorIndex - Навигатор индекс
+ * @property {function(number): void} setNavigatorIndex - Навигатор индекс шинэчлэх функц
+ */
+
+/** @type {import('zustand').UseBoundStore<import('zustand').StoreApi<GlobalState>>} */
+export const useGlobalState = create((set) => ({
+  index: 0,
+  setIndex: (data) => set({ index: data }),
+  navigatorIndex: 0,
+  setNavigatorIndex: (data) => set({ navigatorIndex: data }),
+}));

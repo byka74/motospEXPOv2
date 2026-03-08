@@ -124,7 +124,6 @@ export const TextInput = memo(
 
       finalStyle.fontFamily = finalStyle.fontFamily ?? 'Regular';
       finalStyle.includeFontPadding = false;
-      console.log(finalStyle?.lineHeight);
       if (finalStyle?.lineHeight == null)
         finalStyle.lineHeight = finalStyle.fontSize;
 
