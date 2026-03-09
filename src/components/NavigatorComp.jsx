@@ -6,11 +6,12 @@ import Animated, {
   useSharedValue,
   cubicBezier,
   withTiming,
+  createAnimatedComponent,
 } from 'react-native-reanimated';
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActivityIndicator } from 'react-native';
-import { Image } from 'expo-image';
+import { Image as ExpoImage } from 'expo-image';
 
 import {
   useGlobalState,
@@ -21,6 +22,24 @@ import { Text } from './Text';
 import { View } from './View';
 
 import axios from 'axios';
+
+const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
+
+const AnimtedImage = memo((props) => {
+  const {isTintColor,...restProps} = props;
+  const navigatorIndex = useGlobalState((state) => state.navigatorIndex);
+  const progress = useSharedValue(0);
+
+  const tintColorMemo = useMemo(()=>{
+
+
+  }, [isTintColor]);
+
+  
+
+
+  return <AnimatedExpoImage {...props}></AnimatedExpoImage>;
+});
 
 const NavigatorComp = memo((props) => {
   const index = useGlobalState((state) => state.index);
@@ -116,11 +135,8 @@ const NavigatorComp = memo((props) => {
           animate={{ transform: [{ scale: navigatorIndex === 0 ? 1 : 0.8 }] }}
           duration={500}
         >
-          <Image
+          <AnimtedImage
             style={{ height: 35, width: 35 }}
-            tintColor={
-              navigatorIndex === 0 ? '#ff1119' : isLight ? '#fff' : '#000'
-            }
             source={require('../assets/navigator/1.png')}
           />
         </View>
@@ -137,11 +153,8 @@ const NavigatorComp = memo((props) => {
           animate={{ transform: [{ scale: navigatorIndex === 1 ? 1 : 0.8 }] }}
           duration={500}
         >
-          <Image
+          <AnimtedImage
             style={{ height: 35, width: 35 }}
-            tintColor={
-              navigatorIndex === 1 ? '#ff1119' : isLight ? '#fff' : '#000'
-            }
             source={require('../assets/navigator/2.png')}
           />
         </View>
@@ -158,11 +171,8 @@ const NavigatorComp = memo((props) => {
           animate={{ transform: [{ scale: navigatorIndex === 2 ? 1 : 0.8 }] }}
           duration={500}
         >
-          <Image
+          <AnimtedImage
             style={{ height: 35, width: 35 }}
-            tintColor={
-              navigatorIndex === 2 ? '#ff1119' : isLight ? '#fff' : '#000'
-            }
             source={require('../assets/navigator/3.png')}
           />
         </View>
@@ -179,11 +189,8 @@ const NavigatorComp = memo((props) => {
           animate={{ transform: [{ scale: navigatorIndex === 3 ? 1 : 0.8 }] }}
           duration={500}
         >
-          <Image
+          <AnimtedImage
             style={{ height: 35, width: 35 }}
-            tintColor={
-              navigatorIndex === 3 ? '#ff1119' : isLight ? '#fff' : '#000'
-            }
             source={require('../assets/navigator/4.png')}
           />
         </View>
@@ -203,11 +210,8 @@ const NavigatorComp = memo((props) => {
             animate={{ transform: [{ scale: navigatorIndex === 4 ? 1 : 0.8 }] }}
             duration={500}
           >
-            <Image
+            <AnimtedImage
               style={{ height: 35, width: 35 }}
-              tintColor={
-                navigatorIndex === 4 ? '#ff1119' : isLight ? '#fff' : '#000'
-              }
               source={require('../assets/navigator/5.png')}
             />
           </View>
@@ -254,7 +258,7 @@ const UserCircleComponent = () => {
           }}
           duration={500}
         >
-          <Image
+          <AnimtedImage
             style={{
               width: 40,
               height: 40,
