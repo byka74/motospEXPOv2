@@ -1,4 +1,4 @@
-import { Pressable } from 'react-native';
+import { Pressable, Image as ReactImage } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -7,6 +7,9 @@ import Animated, {
   cubicBezier,
   withTiming,
   createAnimatedComponent,
+  useAnimatedProps,
+  interpolateColor,
+  useDerivedValue,
 } from 'react-native-reanimated';
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,21 +28,52 @@ import axios from 'axios';
 
 const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
 
-const AnimtedImage = memo((props) => {
-  const {isTintColor,...restProps} = props;
-  const navigatorIndex = useGlobalState((state) => state.navigatorIndex);
-  const progress = useSharedValue(0);
+/**
+ * @typedef {import('expo-image').ImageProps} ExpoImageProps
+ */
+const AnimtedImage = memo(
+  /**
+   * @typedef {ExpoImageProps} AnimatedImage
+   * @param {AnimatedImage} props
+   * @param {import('react').RefObject} ref
+   */
+  (props, ref) => {
+    const { style, indexValue = 99, ...restProps } = props;
+    const navigatorIndex = useGlobalState((state) => state.navigatorIndex);
+    const progress = useSharedValue(0);
 
-  const tintColorMemo = useMemo(()=>{
+    // 1. Өнгийг тусад нь "Derived Value" болгож авна
+    const derivedColor = useDerivedValue(() => {
+      return interpolateColor(progress.value, [0, 1], ['#ffffff', '#FF1119']);
+    });
 
+    // 2. Animated Props дотор Derived Value-г дамжуулна
+    const animatedProps = useAnimatedProps(() => {
+      if (indexValue === 99) return {};
+      return {
+        tintColor: derivedColor.value,
+      };
+    });
 
-  }, [isTintColor]);
+    useEffect(() => {
+      const targetValue = navigatorIndex === indexValue ? 1 : 0;
+      progress.value = withTiming(targetValue, {
+        duration: 300,
+        easing: Easing.bezier(0.2, 0.7, 0.3, 1),
+      });
+    }, [navigatorIndex, indexValue]);
 
-  
-
-
-  return <AnimatedExpoImage {...props}></AnimatedExpoImage>;
-});
+    return (
+      <AnimatedExpoImage
+        ref={ref}
+        {...restProps}
+        // style дотор tintColor байхгүй байгаа эсэхийг шалгаарай
+        style={[style]}
+        animatedProps={animatedProps}
+      />
+    );
+  },
+);
 
 const NavigatorComp = memo((props) => {
   const index = useGlobalState((state) => state.index);
@@ -138,6 +172,7 @@ const NavigatorComp = memo((props) => {
           <AnimtedImage
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/1.png')}
+            indexValue={0}
           />
         </View>
       </Pressable>
@@ -156,6 +191,7 @@ const NavigatorComp = memo((props) => {
           <AnimtedImage
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/2.png')}
+            indexValue={1}
           />
         </View>
       </Pressable>
@@ -174,6 +210,7 @@ const NavigatorComp = memo((props) => {
           <AnimtedImage
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/3.png')}
+            indexValue={2}
           />
         </View>
       </Pressable>
@@ -192,6 +229,7 @@ const NavigatorComp = memo((props) => {
           <AnimtedImage
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/4.png')}
+            indexValue={3}
           />
         </View>
       </Pressable>
@@ -213,6 +251,7 @@ const NavigatorComp = memo((props) => {
             <AnimtedImage
               style={{ height: 35, width: 35 }}
               source={require('../assets/navigator/5.png')}
+              indexValue={4}
             />
           </View>
         )}
@@ -226,17 +265,17 @@ const UserCircleComponent = () => {
   const navigatorIndex = useGlobalState((state) => state.navigatorIndex);
 
   const [isLoading, setLoading] = useState(false);
+
+  const reloadRef = useRef(null);
+
   useEffect(() => {
+    setLoading(true);
     const fetchFunction = async () => {
       try {
-        setLoading(true);
         const url = `${process.env.EXPO_PUBLIC_APIURL}/`;
         /* const response = await axios.post(process.env.EXPO_PUBLIC_APIURL); */
         console.log(process.env.EXPO_PUBLIC_APIURL);
-      } catch (e) {
-      } finally {
-        setLoading(false);
-      }
+      } catch (e) {}
     };
     fetchFunction();
   }, []);
@@ -247,30 +286,52 @@ const UserCircleComponent = () => {
       animate={{ transform: [{ scale: navigatorIndex === 4 ? 1 : 0.8 }] }}
       duration={500}
     >
-      {isLoading ? (
-        <ActivityIndicator color={'#ff1119'} size={'small'} />
-      ) : (
-        <View
+      <View
+        style={{
+          overflow: 'hidden',
+          borderRadius: 30,
+        }}
+        duration={500}
+      >
+        <AnimtedImage
+          ref={reloadRef}
           style={{
-            overflow: 'hidden',
-            borderRadius: 30,
-            borderColor: '#ff1119',
+            width: 40,
+            height: 40,
           }}
-          duration={500}
-        >
-          <AnimtedImage
-            style={{
-              width: 40,
-              height: 40,
-              backgroundColor: '#fff',
-              objectFit: 'cover',
-            }}
-            source={
-              'https://t4.ftcdn.net/jpg/04/31/64/75/360_F_431647519_usrbQ8Z983hTYe8zgA7t1XVc5fEtqcpa.jpg'
+          contentFit="cover"
+          contentPosition={'center'}
+          source={{
+            uri: 'https://www.catholicsingles.com/wp-content/uploads/2020/06/blog-header-3.png',
+          }}
+          onLoadStart={() => {
+            setLoading(true);
+            console.log('Zurag achaalj bn.');
+          }}
+          onError={() => {
+            console.log('Zurag achaalj chadsangui.');
+            reloadRef.current.reloadAsync();
+          }}
+          loading="lazy"
+          transition={300}
+          cachePolicy="none"
+          priority="high"
+          onProgress={(e) => {
+            const per = parseInt((e.loaded / e.total) * 100);
+            if (per >= 100) {
+              setLoading(false);
             }
-          />
-        </View>
-      )}
+            console.log(per+'%');
+          }}
+        />
+      </View>
+      {isLoading ? (
+        <ActivityIndicator
+          style={{ position: 'absolute' }}
+          color={'#ff1119'}
+          size={'small'}
+        />
+      ) : null}
     </View>
   );
 };

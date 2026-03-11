@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "bradlc.vscode-tailwindcss",
+    "christian-kohler.npm-intellisense",
+    "esbenp.prettier-vscode",
+    "msjsdiag.vscode-react-native",
+    "dbaeumer.vscode-eslint",
+    "mrmlnc.vscode-scss",
+    "wallabyjs.console-ninja",
+    "dotenv.dotenv-vscode",
+    "christian-kohler.path-intellisense"
+  ]
+}

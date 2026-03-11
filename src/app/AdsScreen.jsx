@@ -15,6 +15,8 @@ import {
 } from '../zustand/context';
 import NavigatorComp from '../components/NavigatorComp';
 
+
+
 export default function AdsScreen(props) {
   const data = [{ a: 1 }, { a: 1 }, { a: 1 }, { a: 1 }, { a: 1 }, { a: 1 }];
   return (

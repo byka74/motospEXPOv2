@@ -1,8 +1,25 @@
 {
-    "editor.formatOnSave": false,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "npm-intellisense.packageSubfoldersIntellisense": true,
-    "npm-intellisense.scanDevDependencies": true,
-    "npm-intellisense.showBuildInLibs": true,
-    "notebook.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.formatOnSave": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "npm-intellisense.packageSubfoldersIntellisense": true,
+  "npm-intellisense.scanDevDependencies": true,
+  "npm-intellisense.showBuildInLibs": true,
+  "notebook.defaultFormatter": "esbenp.prettier-vscode",
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript",
+    "javascriptreact": "javascript"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["nativewind", "className:\\s*['\"]([^'\"]*)['\"]"],
+    ["styled\\([^)]*\\)\\(?['\"]([^'\"]*)['\"]\\)?"]
+  ],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "tailwindCSS.classAttributes": ["class", "className", "headerClassName"],
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "js/ts.suggest.jsdoc.enabled": true
 }
