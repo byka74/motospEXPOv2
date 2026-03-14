@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
+    "module": "esnext",
+    "target": "esnext",
     "jsx": "react-native",
     "moduleResolution": "node",
     "baseUrl": "./",
-    "checkJs": false,
-    "allowSyntheticDefaultImports": true,
     "paths": {
-      "*": ["src/*"]
-    }
+      "@/*": ["./*"]
+    },
+    "checkJs": false, // JSDoc-ийг идэвхжүүлэх
+    "allowJs": true, // JS файл дээр ажиллахыг зөвшөөрөх
+    "resolveJsonModule": true // JSON файлуудаас suggest авах
   },
-  "exclude": ["node_modules", "babel.config.js", "metro.config.js"]
+  "exclude": ["node_modules", "android", "ios", ".expo"]
 }

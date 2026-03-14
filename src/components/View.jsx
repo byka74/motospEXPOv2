@@ -16,10 +16,10 @@ export const View = memo(
   /**
    * @typedef {import('react-native').ViewProps} ReactViewProps
    * @typedef {object} CustomViewProps
-   * @property {ReactViewProps} [style] - Текстийн анимэйшн эсвэл динамик стиль объект
-   * @property {ReactViewProps} [animate] - Текстийн анимэйшн эсвэл динамик стиль объект
-   * @property {number} [duration] - Хугацаа (ms)
-   * @property {boolean} [syncLight] - Темийн синхрончлол
+   * @property {ReactViewProps} style - Текстийн анимэйшн эсвэл динамик стиль объект
+   * @property {ReactViewProps} animate - Текстийн анимэйшн эсвэл динамик стиль объект
+   * @property {number} duration - Хугацаа (ms)
+   * @property {boolean} syncLight - Темийн синхрончлол
    */
   /**
    * @typedef {ReactViewProps & CustomViewProps} ViewComponentProps

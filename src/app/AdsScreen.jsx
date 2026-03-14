@@ -13,21 +13,36 @@ import {
   useThemeStore,
   useGlobalState,
 } from '../zustand/context';
-import NavigatorComp from '../components/NavigatorComp';
-
-
 
 export default function AdsScreen(props) {
   const data = [{ a: 1 }, { a: 1 }, { a: 1 }, { a: 1 }, { a: 1 }, { a: 1 }];
+  const insets = useSafeAreaInsets();
+  const navigatorHeight = useThemeStore((data) => data.navigatorHeight);
   return (
     <FlatList
-      data={data}
+      data={[1]}
       horizontal={false}
       nestedScrollEnabled
       keyExtractor={(_, index) => index.toString()}
       renderItem={({ item, index }) => (
-        <View key={index} style={{ }}>
-          <Text>Helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Text>
+        <View
+          style={{
+            paddingBottom: insets.bottom + navigatorHeight,
+            paddingTop: insets.top,
+          }}
+        >
+          {data.map((mapItem, mapIndex) => (
+            <View
+              key={mapIndex}
+              style={{
+                minHeight: 500,
+                marginBottom: 20,
+                backgroundColor: 'rgb(200,200,200)',
+              }}
+            >
+              <Text>Helloaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</Text>
+            </View>
+          ))}
         </View>
       )}
     />

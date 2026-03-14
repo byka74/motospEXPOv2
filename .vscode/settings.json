@@ -4,22 +4,17 @@
   "npm-intellisense.packageSubfoldersIntellisense": true,
   "npm-intellisense.scanDevDependencies": true,
   "npm-intellisense.showBuildInLibs": true,
+  "editor.suggest.snippetsPreventQuickSuggestions": true,
   "notebook.defaultFormatter": "esbenp.prettier-vscode",
-  "tailwindCSS.includeLanguages": {
-    "typescript": "javascript",
-    "typescriptreact": "javascript",
-    "javascriptreact": "javascript"
-  },
-  "tailwindCSS.experimental.classRegex": [
-    ["nativewind", "className:\\s*['\"]([^'\"]*)['\"]"],
-    ["styled\\([^)]*\\)\\(?['\"]([^'\"]*)['\"]\\)?"]
-  ],
-  "files.associations": {
-    "*.css": "tailwindcss"
-  },
-  "tailwindCSS.classAttributes": ["class", "className", "headerClassName"],
   "editor.quickSuggestions": {
     "strings": true
   },
+  "[javascript]": {
+    "editor.inlayHints.enabled": "on",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "js/ts.implicitProjectConfig.checkJs": true,
+  "js/ts.suggestionActions.enabled": true,
+  "js/ts.suggest.jsdoc.generateReturns": true,
   "js/ts.suggest.jsdoc.enabled": true
 }

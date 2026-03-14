@@ -28,7 +28,7 @@ export const Text = memo(
    */
   (props) => {
     const {
-      style = null,
+      style,
       animate,
       children,
       duration = null,
@@ -44,7 +44,7 @@ export const Text = memo(
 
       const defaultStyle = {
         fontSize: 12,
-        lineHeight: mergeStyle.fontSize ? mergeStyle.fontSize * 1.1 : 12 * 1.1,
+        lineHeight: mergeStyle.fontSize ? mergeStyle.fontSize * 1.2 : 12 * 1.2,
         includeFontPadding: false,
         fontFamily: mergeStyle.fontFamily ? mergeStyle.fontFamily : 'Regular',
       };

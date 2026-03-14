@@ -1,4 +1,4 @@
-import { Pressable, Image as ReactImage } from 'react-native';
+import { Pressable, Image as ReactImage, StyleSheet } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Keyboard } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 
 import {
@@ -25,6 +25,7 @@ import { Text } from './Text';
 import { View } from './View';
 
 import axios from 'axios';
+import { BlurView } from 'expo-blur';
 
 const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
 
@@ -34,17 +35,30 @@ const AnimatedExpoImage = Animated.createAnimatedComponent(ExpoImage);
 const AnimtedImage = memo(
   /**
    * @typedef {ExpoImageProps} AnimatedImage
+   * @property {boolean} [syncLight]
    * @param {AnimatedImage} props
    * @param {import('react').RefObject} ref
    */
   (props, ref) => {
-    const { style, indexValue = 99, ...restProps } = props;
+    const { style, indexValue = 99, syncLight, ...restProps } = props;
     const navigatorIndex = useGlobalState((state) => state.navigatorIndex);
+    const isLight = useThemeStore((state) => state.isLight);
     const progress = useSharedValue(0);
 
     // 1. Өнгийг тусад нь "Derived Value" болгож авна
     const derivedColor = useDerivedValue(() => {
-      return interpolateColor(progress.value, [0, 1], ['#ffffff', '#FF1119']);
+      return interpolateColor(
+        progress.value,
+        [0, 1],
+        [
+          syncLight
+            ? isLight
+              ? 'rgb(100,100,100)'
+              : 'rgb(220,220,220)'
+            : 'rgb(220,220,220)',
+          '#FF1119',
+        ],
+      );
     });
 
     // 2. Animated Props дотор Derived Value-г дамжуулна
@@ -75,7 +89,8 @@ const AnimtedImage = memo(
   },
 );
 
-const NavigatorComp = memo((props) => {
+const Navigator = memo((props) => {
+  const { scrollBlurTargetRef } = props;
   const index = useGlobalState((state) => state.index);
   const setIndex = useGlobalState((state) => state.setIndex);
   const navigatorIndex = useGlobalState((state) => state.navigatorIndex);
@@ -83,6 +98,7 @@ const NavigatorComp = memo((props) => {
   const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
   const isLight = useThemeStore((state) => state.isLight);
   const initInsets = useSafeAreaInsets();
+  const setNavigatorheight = useThemeStore((state) => state.setNavigatorheight);
 
   const progress = useSharedValue((index * 100).toString() + '%');
   const isAnimating = useSharedValue(false);
@@ -115,12 +131,12 @@ const NavigatorComp = memo((props) => {
   useEffect(() => {
     progress.value = (navigatorIndex * 100).toString() + '%';
     isAnimating.value = true;
-  }, [navigatorIndex]);
+    Keyboard.dismiss();
+  }, [navigatorIndex, index]);
 
   return (
     <View
       style={{
-        backgroundColor: 'rgba(80,80,80, 0.5)',
         position: 'absolute',
         top: 'auto',
         bottom: 0,
@@ -134,7 +150,30 @@ const NavigatorComp = memo((props) => {
         alignItems: 'center',
         justifyContent: 'center',
       }}
+      onLayout={(e) => {
+        setNavigatorheight(e.nativeEvent.layout.height);
+      }}
     >
+      <BlurView
+        style={[StyleSheet.absoluteFill]}
+        tint={isLight ? 'dark' : 'light'}
+        blurMethod="dimezisBlurViewSdk31Plus"
+        intensity={10}
+        blurTarget={scrollBlurTargetRef}
+        removeClippedSubviews
+      />
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: isLight
+            ? 'rgba(240,240,240,0.5)'
+            : 'rgba(50,50,50,0.5)',
+        }}
+      ></View>
       <View
         style={{
           height: 2,
@@ -173,6 +212,7 @@ const NavigatorComp = memo((props) => {
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/1.png')}
             indexValue={0}
+            syncLight
           />
         </View>
       </Pressable>
@@ -192,6 +232,7 @@ const NavigatorComp = memo((props) => {
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/2.png')}
             indexValue={1}
+            syncLight
           />
         </View>
       </Pressable>
@@ -211,6 +252,7 @@ const NavigatorComp = memo((props) => {
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/3.png')}
             indexValue={2}
+            syncLight
           />
         </View>
       </Pressable>
@@ -230,6 +272,7 @@ const NavigatorComp = memo((props) => {
             style={{ height: 35, width: 35 }}
             source={require('../assets/navigator/4.png')}
             indexValue={3}
+            syncLight
           />
         </View>
       </Pressable>
@@ -240,18 +283,25 @@ const NavigatorComp = memo((props) => {
         }}
         style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}
       >
-        {!isUserLoggedIn ? (
+        {isUserLoggedIn ? (
           <UserCircleComponent />
         ) : (
           <View
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-            animate={{ transform: [{ scale: navigatorIndex === 4 ? 1 : 0.8 }] }}
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            animate={{
+              transform: [{ scale: navigatorIndex === 4 ? 1 : 0.8 }],
+            }}
             duration={500}
           >
             <AnimtedImage
               style={{ height: 35, width: 35 }}
               source={require('../assets/navigator/5.png')}
               indexValue={4}
+              syncLight
             />
           </View>
         )}
@@ -321,7 +371,7 @@ const UserCircleComponent = () => {
             if (per >= 100) {
               setLoading(false);
             }
-            console.log(per+'%');
+            console.log(per + '%');
           }}
         />
       </View>
@@ -336,4 +386,4 @@ const UserCircleComponent = () => {
   );
 };
 
-export default NavigatorComp;
+export default Navigator;

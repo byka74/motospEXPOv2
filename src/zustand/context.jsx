@@ -24,6 +24,8 @@ export const useUserStore = create((set) => ({
  * @property {string} theme - Сонгосон тем ('light', 'dark', 'auto')
  * @property {function(boolean): void} setLight - Горимыг гараар солих
  * @property {function(string): void} setTheme - Темийг хадгалах
+ * @property {string} navigatorHeight
+ * @property {function(boolean): void} setNavigatorheight
  */
 
 const systemLight = Appearance.getColorScheme();
@@ -33,6 +35,8 @@ export const useThemeStore = create((set) => ({
   isLight: systemLight === 'light' ? true : false,
   setLight: (data) => set({ isLight: data }),
   theme: getItem('theme') ?? 'auto',
+  navigatorHeight: 100,
+  setNavigatorheight: (data)=>set({navigatorHeight: data}),
 }));
 
 /**

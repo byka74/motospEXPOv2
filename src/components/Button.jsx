@@ -12,25 +12,25 @@ import { useThemeStore } from '../zustand/context';
 
 const AnimatedPressble = Animated.createAnimatedComponent(Pressable);
 
+/**
+ * @typedef {object} CustomButtonProps
+ * @property {boolean} syncLight - Темийн синхрончлол
+ * @property {number} duration - Хугацаа (ms)
+ * @property {import('react-native').ViewStyle} animate - ViewStyle-тэй ижил бүтэцтэй анимэйшн стиль
+ */
+
+/**
+ * @typedef { import('react-native').PressableProps & CustomButtonProps} ButtonProps
+ */
+
 export const Button = memo(
   /**
-   * @typedef {import('react-native').PressableProps} ReactPressableProps
-   * @typedef {object} CustomButtonProps
-   * @property {CustomButtonProps} [style] - Текстийн анимэйшн эсвэл динамик стиль объект
-   * @property {CustomButtonProps} [animate] - Текстийн анимэйшн эсвэл динамик стиль объект
-   * @property {number} [duration] - Хугацаа (ms)
-   * @property {boolean} [syncLight] - Темийн синхрончлол
-   */
-  /**
-   * @typedef {ReactPressableProps & CustomButtonProps} ButtonComponentProps
-   */
-  /**
-   * @param {ReactPressableProps} props
+   * @param {ButtonProps} props
    */
   (props) => {
     const {
       style = null,
-      animate = null,
+      animate,
       children,
       duration = null,
       syncLight,
@@ -38,7 +38,7 @@ export const Button = memo(
     } = props;
 
     const isLight = useThemeStore((state) => state.isLight);
-    
+
     const memoizedLayoutStyle = useMemo(() => {
       const styleSecond = style;
       const animateSecond = animate;
@@ -47,8 +47,8 @@ export const Button = memo(
 
       if (syncLight) {
         finalStyle.backgroundColor = isLight
-          ? 'rgb(255,255,255)'
-          : 'rgb(50, 50, 50)';
+          ? 'rgb(240,240,240)'
+          : 'rgb(80, 80, 80)';
       }
       return finalStyle;
     }, [style, animate, isLight, syncLight]);

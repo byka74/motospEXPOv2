@@ -13,8 +13,10 @@ import {
   useThemeStore,
   useGlobalState,
 } from '../zustand/context';
-import NavigatorComp from '../components/NavigatorComp';
+import Navigator from '../components/Navigator';
 import AdsScreen from './AdsScreen';
+import LoginScreen from './LoginScreen';
+import { BlurTargetView } from 'expo-blur';
 
 export default function Index() {
   const user = useUserStore((state) => state.user);
@@ -35,6 +37,7 @@ export default function Index() {
   const scrollIndexPrev = useRef(0);
   const scrollIsDragged = useRef(false);
   const scrollNavigatorIndexPrev = useRef(0);
+  const scrollBlurTargetRef = useRef(null);
 
   useEffect(() => {
     const colorsSchemeSub = Appearance.addChangeListener(({ colorScheme }) => {
@@ -63,119 +66,123 @@ export default function Index() {
       syncLight
     >
       <StatusBar style={isLight ? 'dark' : 'light'} animated={true}></StatusBar>
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <ScrollView
-          onLayout={(e) => {
-            scrollWidthRef.current = e.nativeEvent.layout.width;
-          }}
-          ref={scrollRef}
-          bounces={false}
-          overScrollMode="never"
-          horizontal={true}
-          pagingEnabled={true}
-          decelerationRate={'fast'}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          scrollEventThrottle={16}
-          keyboardDismissMode="on-drag"
-          onMomentumScrollBegin={() => {
-            scrollIsDragged.current = true;
-          }}
-          onScroll={(e) => {
-            const offsetX = e.nativeEvent.contentOffset.x;
-            const totalWidth = e.nativeEvent.layoutMeasurement.width;
-            const innerIndex = parseInt(
-              (offsetX + totalWidth / 2) / totalWidth,
-            );
-            if (innerIndex != scrollNavigatorIndexPrev.current) {
-              setNavigatorIndex(innerIndex);
-            }
-            scrollNavigatorIndexPrev.current = innerIndex;
-          }}
-          onMomentumScrollEnd={(e) => {
-            const offsetX = e.nativeEvent.contentOffset.x;
-            const totalWidth = e.nativeEvent.layoutMeasurement.width;
-            const innerIndex = parseInt(
-              (offsetX + totalWidth / 2) / totalWidth,
-            );
-            setIndex(innerIndex);
-          }}
-          contentContainerStyle={{
-            maxHeight: '100%',
-            minHeight: '100%',
-            minWidth: '500%',
-            maxWidth: '500%',
+      <BlurTargetView style={{ flex: 1 }} ref={scrollBlurTargetRef}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          <View
-            style={{
-              minHeight: '100%',
+          <ScrollView
+            onLayout={(e) => {
+              scrollWidthRef.current = e.nativeEvent.layout.width;
+            }}
+            ref={scrollRef}
+            bounces={false}
+            overScrollMode="never"
+            horizontal={true}
+            pagingEnabled={true}
+            decelerationRate={'fast'}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            keyboardDismissMode="on-drag"
+            onMomentumScrollBegin={() => {
+              scrollIsDragged.current = true;
+            }}
+            onScroll={(e) => {
+              const offsetX = e.nativeEvent.contentOffset.x;
+              const totalWidth = e.nativeEvent.layoutMeasurement.width;
+              const innerIndex = parseInt(
+                (offsetX + totalWidth / 2) / totalWidth,
+              );
+
+              if (innerIndex != scrollNavigatorIndexPrev.current) {
+                setNavigatorIndex(innerIndex);
+              }
+              scrollNavigatorIndexPrev.current = innerIndex;
+            }}
+            onMomentumScrollEnd={(e) => {
+              const offsetX = e.nativeEvent.contentOffset.x;
+              const totalWidth = e.nativeEvent.layoutMeasurement.width;
+              const innerIndex = parseInt(
+                (offsetX + totalWidth / 2) / totalWidth,
+              );
+
+              setIndex(innerIndex);
+            }}
+            contentContainerStyle={{
               maxHeight: '100%',
-              minWidth: '20%',
-              maxWidth: '20%',
+              minHeight: '100%',
+              minWidth: '500%',
+              maxWidth: '500%',
             }}
           >
-            <AdsScreen />
-          </View>
-          <View
-            style={{
-              minHeight: '100%',
-              maxHeight: '100%',
-              minWidth: '20%',
-              maxWidth: '20%',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text animate syncLight duration={10000}>
-              2
-            </Text>
-          </View>
-          <View
-            style={{
-              minHeight: '100%',
-              maxHeight: '100%',
-              minWidth: '20%',
-              maxWidth: '20%',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text syncLight>3</Text>
-          </View>
-          <View
-            style={{
-              minHeight: '100%',
-              maxHeight: '100%',
-              minWidth: '20%',
-              maxWidth: '20%',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text syncLight>4</Text>
-          </View>
-          <View
-            style={{
-              minHeight: '100%',
-              maxHeight: '100%',
-              minWidth: '20%',
-              maxWidth: '20%',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text syncLight>5</Text>
-          </View>
-        </ScrollView>
-      </View>
-      <NavigatorComp></NavigatorComp>
+            <View
+              style={{
+                minHeight: '100%',
+                maxHeight: '100%',
+                minWidth: '20%',
+                maxWidth: '20%',
+              }}
+            >
+              <AdsScreen />
+            </View>
+            <View
+              style={{
+                minHeight: '100%',
+                maxHeight: '100%',
+                minWidth: '20%',
+                maxWidth: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text animate syncLight duration={10000}>
+                2
+              </Text>
+            </View>
+            <View
+              style={{
+                minHeight: '100%',
+                maxHeight: '100%',
+                minWidth: '20%',
+                maxWidth: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text syncLight>3</Text>
+            </View>
+            <View
+              style={{
+                minHeight: '100%',
+                maxHeight: '100%',
+                minWidth: '20%',
+                maxWidth: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text syncLight>4</Text>
+            </View>
+            <View
+              style={{
+                minHeight: '100%',
+                maxHeight: '100%',
+                minWidth: '20%',
+                maxWidth: '20%',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <LoginScreen></LoginScreen>
+            </View>
+          </ScrollView>
+        </View>
+      </BlurTargetView>
+      <Navigator scrollBlurTargetRef={scrollBlurTargetRef}></Navigator>
     </View>
   );
 }
