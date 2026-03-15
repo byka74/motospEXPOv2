@@ -5,19 +5,29 @@ import {
 } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { useEffect, useState } from 'react';
-import { PortalHost } from '@rn-primitives/portal';
 import 'react-native-reanimated';
-import { Dimensions, Keyboard, Platform } from 'react-native';
+import { Dimensions, Keyboard, Platform, View as RNView } from 'react-native';
 import { useThemeStore } from '../zustand/context';
 import { View } from '../components/View';
 import * as SystemUI from 'expo-system-ui';
+import {
+  useKeyboardHandler,
+  KeyboardProvider,
+  KeyboardAvoidingView,
+  KeyboardGestureArea,
+} from 'react-native-keyboard-controller';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  ReduceMotion,
+  Easing,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [keyboardShow, setKeyboardShow] = useState(false);
-
   const [loaded, error] = useFonts({
     Regular: require('../assets/fonts/GoogleSans-Regular.ttf'),
     Medium: require('../assets/fonts/GoogleSans-Medium.ttf'),
@@ -33,11 +43,6 @@ export default function RootLayout() {
   const setNavigatorheight = useThemeStore((data) => data.setNavigatorheight);
   const isLight = useThemeStore((data) => data.isLight);
 
-  const [platformKeyboardView, setPlatformKeyboardView] = useState({
-    paddingBottom: 0,
-    height: 0,
-  });
-
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -51,83 +56,71 @@ export default function RootLayout() {
     SystemUI.setBackgroundColorAsync(isLight ? '#ffffff' : '#323232');
   }, [isLight]);
 
-  useEffect(() => {
-    const keyboardSubDidShow = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-      setKeyboardShow(true);
-      setPlatformKeyboardView((prev) => ({
-        ...prev,
-        height: e.endCoordinates.height + insets.bottom,
-      }));
-    });
-    const keyboardSubDidHide = Keyboard.addListener('keyboardDidHide', (e) => {
-      setKeyboardHeight(0);
-      setKeyboardShow(false);
-      setPlatformKeyboardView((prev) => ({ ...prev, height: 0 }));
-    });
-
-    const keyboardSubWillShow = Keyboard.addListener(
-      'keyboardWillShow',
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-        setKeyboardShow(true);
-        setPlatformKeyboardView((prev) => ({
-          ...prev,
-          paddingBottom: e.endCoordinates.height + insets.bottom,
-        }));
-      },
-    );
-    const keyboardSubWillHide = Keyboard.addListener(
-      'keyboardWillShow',
-      (e) => {
-        setKeyboardHeight(0);
-        setKeyboardShow(false);
-        setPlatformKeyboardView((prev) => ({ ...prev, paddingBottom: 0 }));
-      },
-    );
-
-    const keyboardSubDidChangeFrame = Keyboard.addListener(
-      'keyboardDidChangeFrame',
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-      },
-    );
-    const keyboardSubWillChangeFrame = Keyboard.addListener(
-      'keyboardWillChangeFrame',
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-      },
-    );
-
-    return () => {
-      keyboardSubDidShow.remove();
-      keyboardSubDidHide.remove();
-
-      keyboardSubWillShow.remove();
-      keyboardSubWillHide.remove();
-
-      keyboardSubDidChangeFrame.remove();
-      keyboardSubWillChangeFrame.remove();
-    };
-  }, []);
-
   if (!loaded && !error) {
     return null;
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen name="index" />
-        </Stack>
-        <View animate={platformKeyboardView} duration={200}></View>
-      </SafeAreaProvider>
-    </View>
+    <KeyboardProvider>
+      <View style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <StackComponent></StackComponent>
+        </SafeAreaProvider>
+      </View>
+    </KeyboardProvider>
+  );
+}
+
+function StackComponent() {
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [keyboardShow, setKeyboardShow] = useState(false);
+
+  const heightValue = useSharedValue(0);
+  const paddingValue = useSharedValue(0);
+  const otherComponentKeyboardEffect = () => {
+    console.log('runing on RN');
+  };
+
+  useKeyboardHandler(
+    {
+      onMove: (e) => {
+        'worklet';
+        // Дуудах болгондоо withTiming бичихгүйгээр утгыг нь шууд оноож болно
+        // Гэхдээ илүү smooth болгохын тулд duration-ийг e.duration-оос авсан нь дээр
+        heightValue.value = withTiming(Math.abs(e.height), {
+          duration: e.duration > 0 ? e.duration : 250,
+          easing: Easing.out(Easing.exp),
+          reduceMotion: ReduceMotion.System,
+        });
+        if (e.progress === 1 || e.progress === 0) {
+          paddingValue.value = Math.abs(e.height);
+        }
+      },
+    },
+    [],
+  );
+
+  // 1. Animated Style үүсгэх (Энэ нь хамгийн чухал)
+  const animatedHeight = useAnimatedStyle(() => {
+    return {
+      flex: 1,
+      transform: [{ translateY: -heightValue.value }],
+    };
+  });
+
+
+  return (
+    <Animated.View style={animatedHeight}>
+      <Animated.View style={{height: paddingValue}}></Animated.View>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          keyboardHandlingEnabled: true
+        }}
+      >
+        <Stack.Screen name="index" />
+      </Stack>
+    </Animated.View>
   );
 }

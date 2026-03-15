@@ -17,12 +17,14 @@ import Navigator from '../components/Navigator';
 import AdsScreen from './AdsScreen';
 import LoginScreen from './LoginScreen';
 import { BlurTargetView } from 'expo-blur';
+import ProfileScreen from './ProfileScreen';
 
 export default function Index() {
   const user = useUserStore((state) => state.user);
 
   const isLight = useThemeStore((state) => state.isLight);
   const setLight = useThemeStore((state) => state.setLight);
+  const isUserLoggedIn = useUserStore((state) => state.isUserLoggedIn);
 
   const setIndex = useGlobalState((state) => state.setIndex);
   const index = useGlobalState((state) => state.index);
@@ -177,7 +179,11 @@ export default function Index() {
                 alignItems: 'center',
               }}
             >
-              <LoginScreen></LoginScreen>
+              {isUserLoggedIn ? (
+                <ProfileScreen></ProfileScreen>
+              ) : (
+                <LoginScreen></LoginScreen>
+              )}
             </View>
           </ScrollView>
         </View>

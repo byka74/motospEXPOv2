@@ -5,16 +5,18 @@ import { setItem, getItem } from 'expo-secure-store';
 /**
  * @typedef {object} UserState
  * @property {object|null} user - Хэрэглэгчийн мэдээлэл
- * @property {boolean} isUserLoggedIn - Нэвтэрсэн эсэх
  * @property {function(object): void} setUser - Хэрэглэгчийг тохируулах
+ * @property {boolean} isUserLoggedIn - Нэвтэрсэн эсэх
+ * @property {function(object): void} setUserLoggedIn - Хэрэглэгчийг тохируулах
  * @property {function(): void} logout - Системээс гарах
  */
 
 /** @type {import('zustand').UseBoundStore<import('zustand').StoreApi<UserState>>} */
 export const useUserStore = create((set) => ({
   user: null,
+  setUser: (data) => set({ user: data }),
   isUserLoggedIn: false,
-  setUser: (data) => set({ user: data, isUserLoggedIn: false }),
+  setUserLoggedIn: (data) => set({ isUserLoggedIn: data }),
   logout: () => set({ user: null, isUserLoggedIn: false }),
 }));
 
@@ -36,7 +38,7 @@ export const useThemeStore = create((set) => ({
   setLight: (data) => set({ isLight: data }),
   theme: getItem('theme') ?? 'auto',
   navigatorHeight: 100,
-  setNavigatorheight: (data)=>set({navigatorHeight: data}),
+  setNavigatorheight: (data) => set({ navigatorHeight: data }),
 }));
 
 /**

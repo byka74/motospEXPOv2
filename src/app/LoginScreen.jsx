@@ -2,13 +2,23 @@ import { Button } from '../components/Button';
 import { View } from '../components/View';
 import { TextInput } from '../components/TextInput';
 import { Text } from '../components/Text';
-import { useGlobalState, useThemeStore } from '../zustand/context';
-import { Keyboard, Pressable, ScrollView } from 'react-native';
+import {
+  useGlobalState,
+  useThemeStore,
+  useUserStore,
+} from '../zustand/context';
+import {
+  ActivityIndicator,
+  Keyboard,
+  Pressable,
+  ScrollView,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import Checkbox from '../components/Checkbox';
 
 export default function LoginScreen(props, ref) {
   const navigatorIndex = useGlobalState((data) => data.navigatorIndex);
@@ -27,6 +37,14 @@ export default function LoginScreen(props, ref) {
 
   const [biometricStatus, setBiometricStatus] = useState(false);
   const [saveBiometric, setSaveBiometric] = useState(false);
+
+  const [checkbox, setCheckbox] = useState(false);
+  const [isLoginLoading, setLoginLoading] = useState(false);
+
+  const isUserLoggedIn = useUserStore((data) => data.isUserLoggedIn);
+  const setUserLoggedIn = useUserStore((data) => data.setUserLoggedIn);
+  const user = useUserStore((data) => data.user);
+  const setUser = useUserStore((data) => data.setUser);
 
   useEffect(() => {
     function run() {
@@ -79,35 +97,43 @@ export default function LoginScreen(props, ref) {
   }, [navigatorIndex]);
 
   const loginHandler = async () => {
+    setLoginLoading(true);
     try {
       const res = await axios.post(
         'http://192.168.1.45:3099/api/v1/login',
         { identifier: emailValue, password: passwordValue },
-        { withCredentials: false },
+        {
+          withCredentials: true,
+          headers: { 'Content-Type': 'application/json' },
+        },
       );
+      const data = res.data;
+      console.log(res.status);
       if (res.status === 200) {
-        const data = res.data;
-        const isBiometric =
-          SecureStore.canUseBiometricAuthentication() &&
-          SecureStore.isAvailableAsync();
-        const isDone = await SecureStore.setItemAsync(
-          'user_token',
-          JSON.stringify(data),
-          {
-            requireAuthentication: false,
-            authenticationPrompt: 'Та өөрийгөө баталгаажуулна уу',
-          },
-        );
-        console.log(isDone);
-        const getDataStore = await SecureStore.getItemAsync('user_token');
-        if (isDone) {
-          console.log('Амжилттай хадгаллаа', getDataStore);
+        const accessToken = data.accessToken ?? null;
+        const refreshToken = data.refreshToken ?? null;
+        console.log(accessToken, refreshToken);
+        if (
+          typeof data === 'object' &&
+          accessToken != null &&
+          refreshToken != null
+        ) {
+          await SecureStore.setItemAsync('user_token', JSON.stringify(data));
+          const userData = { accessToken, refreshToken };
+          setUserLoggedIn(true);
+          setUser({ ...user, ...userData });
         } else {
-          console.log('Амжилтгүй оролдлого', getDataStore);
+          await SecureStore.deleteItemAsync('user_token');
+          setUserLoggedIn(false);
+          setUser(null);
         }
+        const getDataStore = await SecureStore.getItemAsync('user_token');
+        console.log(getDataStore);
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -224,11 +250,14 @@ export default function LoginScreen(props, ref) {
             }}
           >
             <Button
+              hitSlop={8}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
               onPress={() => {
-                console.log(true);
+                setCheckbox((prev) => (prev ? false : true));
               }}
             >
-              <Text syncLight>Сануулах</Text>
+              <Checkbox checked={checkbox} size={20} />
+              <Text syncLight>Нэвтрэлт сануулах</Text>
             </Button>
             <Button
               onPress={() => {
@@ -249,8 +278,7 @@ export default function LoginScreen(props, ref) {
           >
             <Button
               onPress={() => {
-                if (loginButtonDisabled === false) {
-                  console.log(true);
+                if (loginButtonDisabled === false && isLoginLoading === false) {
                   loginHandler();
                 }
               }}
@@ -267,26 +295,37 @@ export default function LoginScreen(props, ref) {
                     ? isLight
                       ? 'rgb(200,200,200)'
                       : 'rgb(80,80,80)'
-                    : '#ff1119',
+                    : isLoginLoading
+                      ? isLight
+                        ? 'rgb(200,200,200)'
+                        : 'rgb(80,80,80)'
+                      : '#ff1119',
               }}
               duration={500}
             >
-              <Text
-                style={{
-                  textAlign: 'center',
-                }}
-                animate={{
-                  color:
-                    loginButtonDisabled === true
-                      ? isLight
-                        ? 'rgb(120,120,120)'
-                        : 'rgb(200,200,200)'
-                      : '#fff',
-                }}
-                duration={500}
-              >
-                Нэвтрэх
-              </Text>
+              {isLoginLoading ? (
+                <ActivityIndicator
+                  color={'#fff'}
+                  size={'small'}
+                ></ActivityIndicator>
+              ) : (
+                <Text
+                  style={{
+                    textAlign: 'center',
+                  }}
+                  animate={{
+                    color:
+                      loginButtonDisabled === true
+                        ? isLight
+                          ? 'rgb(120,120,120)'
+                          : 'rgb(200,200,200)'
+                        : '#fff',
+                  }}
+                  duration={500}
+                >
+                  Нэвтрэх
+                </Text>
+              )}
             </Button>
             {biometricStatus ? (
               <Button

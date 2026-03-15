@@ -371,7 +371,6 @@ const UserCircleComponent = () => {
             if (per >= 100) {
               setLoading(false);
             }
-            console.log(per + '%');
           }}
         />
       </View>
