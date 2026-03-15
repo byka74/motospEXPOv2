@@ -18,28 +18,27 @@ function ProfileScreen(props, ref) {
   const isUserLoggedIn = useUserStore((data) => data.isUserLoggedIn);
   useEffect(() => {
     async function run() {
+      const tokens = await SecureStore.getItemAsync('user_token');
+      const { accessToken } = JSON.parse(tokens);
+      console.log(accessToken);
+      const bearerToken = 'Bearer ' + accessToken;
       try {
-        const tokens = await SecureStore.getItemAsync('user_token');
-        if (tokens != null) {
-          const accessToken =
-            'Bearer ' + JSON.stringify(JSON.parse(tokens).accessToken);
-          const getme = await axios.get('http://192.168.1.45:3099/api/v1/me', {
-            headers: {
-              Authorization: accessToken,
-            },
-          });
-          if (getme.status === 200) {
-            console.log('from Profile: ', getme.data);
-          }
+        const response = await axios.get('http://192.168.1.45:3099/api/v1/me', {
+          headers: {
+            Authorization: bearerToken,
+          },
+          withCredentials: true,
+        });
+        if (response.status === 200) {
+          console.log(response.data);
         } else {
-          setUserLoggedIn(false);
-          setUser(null);
+          console.log(response.status, response.data);
         }
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log(error.response.data);
       }
     }
-    run();
+    if (isUserLoggedIn) run();
   }, [isUserLoggedIn, user]);
   return (
     <ScrollView
@@ -54,24 +53,22 @@ function ProfileScreen(props, ref) {
       <View
         style={{
           flex: 1,
-          backgroundColor: '#ff1119',
           paddingBottom: insets.bottom + navigatorHeight,
           paddingTop: insets.top,
           justifyContent: 'flex-start',
           alignItems: 'center',
         }}
       >
-        <Text syncLight>
-          <Image></Image>
-          <Button
-            onPress={() => {
-              setUserLoggedIn(false);
-              setUser(null);
-            }}
-          >
-            <Text>Гарах</Text>
-          </Button>
-        </Text>
+        <Text syncLight>{JSON.stringify(user)}</Text>
+        <Image></Image>
+        <Button
+          onPress={() => {
+            setUserLoggedIn(false);
+            setUser(null);
+          }}
+        >
+          <Text>Гарах</Text>
+        </Button>
       </View>
     </ScrollView>
   );

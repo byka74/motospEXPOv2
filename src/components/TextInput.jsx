@@ -170,8 +170,8 @@ const TextInputRender = (props, ref) => {
             paddingHorizontal: 25,
             fontSize: 12,
             lineHeight: 12,
-            paddingTop: isFocus ? 30 : 25,
-            paddingBottom: isFocus ? 20 : 25,
+            paddingTop: 25,
+            paddingBottom: 25,
           },
           animate != null && {
             transitionProperty,
@@ -218,7 +218,7 @@ const TextInputRender = (props, ref) => {
           opacity: isFocus ? 0.5 : 1,
           transform: [
             { translateX: 25 },
-            { translateY: isFocus ? 10 : '200%' },
+            { translateY: isFocus ? 10 : '175%' },
             { scale: isFocus ? 0.85 : 1 },
           ],
         }}
