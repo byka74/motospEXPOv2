@@ -100,6 +100,8 @@ const Navigator = memo((props) => {
   const initInsets = useSafeAreaInsets();
   const setNavigatorheight = useThemeStore((state) => state.setNavigatorheight);
 
+  const [blurTint, setBlurTint] = useState(isLight);
+
   const progress = useSharedValue((index * 100).toString() + '%');
   const isAnimating = useSharedValue(false);
 
@@ -134,6 +136,14 @@ const Navigator = memo((props) => {
     Keyboard.dismiss();
   }, [navigatorIndex, index]);
 
+  useEffect(() => {
+    if (isLight) {
+      setBlurTint(true);
+    } else {
+      setBlurTint(false);
+    }
+  }, [isLight, navigatorIndex, index, isUserLoggedIn]);
+
   return (
     <View
       style={{
@@ -156,11 +166,10 @@ const Navigator = memo((props) => {
     >
       <BlurView
         style={[StyleSheet.absoluteFill]}
-        tint={isLight ? 'dark' : 'light'}
+        tint={blurTint ? 'dark' : 'light'}
         blurMethod="dimezisBlurViewSdk31Plus"
         intensity={10}
         blurTarget={scrollBlurTargetRef}
-        removeClippedSubviews
       />
       <View
         style={{
@@ -170,8 +179,8 @@ const Navigator = memo((props) => {
           left: 0,
           right: 0,
           backgroundColor: isLight
-            ? 'rgba(240,240,240,0.5)'
-            : 'rgba(50,50,50,0.5)',
+            ? 'rgba(240,240,240,0.8)'
+            : 'rgba(50,50,50,0.8)',
         }}
       ></View>
       <View
