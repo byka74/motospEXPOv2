@@ -23,12 +23,15 @@ export default function AdsScreen(props) {
       data={[1]}
       horizontal={false}
       nestedScrollEnabled
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       keyExtractor={(_, index) => index.toString()}
       renderItem={({ item, index }) => (
         <View
           style={{
-            paddingBottom: insets.bottom + navigatorHeight,
+            paddingBottom: navigatorHeight,
             paddingTop: insets.top,
+            rowGap: 20,
           }}
         >
           {data.map((mapItem, mapIndex) => (
@@ -36,7 +39,6 @@ export default function AdsScreen(props) {
               key={mapIndex}
               style={{
                 minHeight: 500,
-                marginBottom: 20,
                 backgroundColor: 'rgb(200,200,200)',
               }}
             >

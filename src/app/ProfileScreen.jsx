@@ -45,8 +45,7 @@ function ProfileScreen(props, ref) {
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{
-        minWidth: '100%',
-        maxWidth: '100%',
+        width: '100%',
         minHeight: '100%',
       }}
     >
@@ -59,7 +58,7 @@ function ProfileScreen(props, ref) {
           alignItems: 'center',
         }}
       >
-        <Text syncLight>{JSON.stringify(user)}</Text>
+        <Text syncLight></Text>
         <Image></Image>
         <Button
           onPress={() => {

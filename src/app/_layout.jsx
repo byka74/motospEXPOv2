@@ -115,7 +115,7 @@ function StackComponent() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'slide_from_right',
+          animation: 'simple_push',
           keyboardHandlingEnabled: true
         }}
       >

@@ -19,20 +19,28 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import Checkbox from '../components/Checkbox';
+import { router } from 'expo-router';
 
 export default function LoginScreen(props, ref) {
   const navigatorIndex = useGlobalState((data) => data.navigatorIndex);
   const isLight = useThemeStore((data) => data.isLight);
   const navigatorHeight = useThemeStore((data) => data.navigatorHeight);
   const insets = useSafeAreaInsets();
-  const [emailValue, setEmailValue] = useState('');
-  const [passwordValue, setPasswordValue] = useState('');
+  const emailValue = useRef('');
+  const passwordValue = useRef('');
+  // 1. Имэйл шалгах Regex (Стандарт формат)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // 2. Нууц үг шалгах Regex (Дор хаяж 8 тэмдэгт, 1 том үсэг, 1 тоо)
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
   const [loginButtonDisabled, setLoginButtonDisabled] = useState(true);
 
+  const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
 
   const [biometricStatus, setBiometricStatus] = useState(false);
@@ -45,47 +53,6 @@ export default function LoginScreen(props, ref) {
   const setUserLoggedIn = useUserStore((data) => data.setUserLoggedIn);
   const user = useUserStore((data) => data.user);
   const setUser = useUserStore((data) => data.setUser);
-
-  useEffect(() => {
-    function run() {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-      let emailErrorChecker = false;
-      let passwordErrorChecker = false;
-
-      if (emailRegex.test(emailValue) && emailValue.length > 0) {
-        emailErrorChecker = false;
-      } else {
-        if (emailValue.length === 0) {
-          emailErrorChecker = false;
-        } else {
-          emailErrorChecker = true;
-        }
-      }
-
-      if (passwordRegex.test(passwordValue) && passwordValue.length > 0) {
-        passwordErrorChecker = false;
-      } else {
-        if (passwordValue.length === 0) {
-          passwordErrorChecker = false;
-        } else {
-          passwordErrorChecker = true;
-        }
-      }
-
-      setEmailError(emailErrorChecker);
-      setPasswordError(passwordErrorChecker);
-
-      if (passwordRegex.test(passwordValue) && emailRegex.test(emailValue)) {
-        setLoginButtonDisabled(false);
-      } else {
-        setLoginButtonDisabled(true);
-      }
-    }
-    run();
-  }, [passwordValue, emailValue]);
 
   useEffect(() => {
     const isAvailable = SecureStore.isAvailableAsync();
@@ -101,19 +68,22 @@ export default function LoginScreen(props, ref) {
     try {
       const res = await axios.post(
         'http://192.168.1.45:3099/api/v1/login',
-        { identifier: emailValue, password: passwordValue },
+        { identifier: emailValue.current, password: passwordValue.current },
         {
           withCredentials: true,
           headers: { 'Content-Type': 'application/json' },
         },
       );
       const data = res.data;
-      console.log(res.status);
       if (res.status === 200) {
-        const accessToken = data.accessToken ?? null;
-        const refreshToken = data.refreshToken ?? null;
+        const accessToken = data.data[0].accessToken ?? null;
+        const refreshToken = data.data[0].refreshToken ?? null;
         console.log(accessToken, refreshToken);
-        if (
+        emailInputRef.current.clear();
+        passwordInputRef.current.clear();
+        emailValue.current = '';
+        passwordValue.current = '';
+        /*         if (
           typeof data === 'object' &&
           accessToken != null &&
           refreshToken != null
@@ -126,16 +96,30 @@ export default function LoginScreen(props, ref) {
           await SecureStore.deleteItemAsync('user_token');
           setUserLoggedIn(false);
           setUser(null);
-        }
-        const getDataStore = await SecureStore.getItemAsync('user_token');
-        console.log(getDataStore);
+        } */
       }
     } catch (e) {
-      console.error(e);
+      console.log(e.response.data.errorMessage);
     } finally {
       setLoginLoading(false);
     }
   };
+
+  useEffect(() => {
+    emailInputRef.current.clear();
+    passwordInputRef.current.clear();
+    emailValue.current = '';
+    passwordValue.current = '';
+    console.log('cleared by init');
+  }, []);
+
+  useEffect(() => {
+    emailInputRef.current.clear();
+    passwordInputRef.current.clear();
+    emailValue.current = '';
+    passwordValue.current = '';
+    console.log('cleared by user');
+  }, [user]);
 
   return (
     <ScrollView
@@ -143,25 +127,20 @@ export default function LoginScreen(props, ref) {
       nestedScrollEnabled
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ minWidth: '100%' }}
+      contentContainerStyle={{ width: '100%', minHeight: '100%' }}
     >
       <View
         style={{
-          paddingBottom: insets.bottom + navigatorHeight,
+          paddingBottom: navigatorHeight,
           paddingTop: insets.top,
-          minWidth: '100%',
-          maxWidth: '100%',
           minHeight: '100%',
           gap: 40,
-          alignItems: 'center',
-          justifyContent: 'center',
+          paddingHorizontal: 30,
         }}
       >
         <View
           style={{
-            minWidth: '100%',
-            maxWidth: '100%',
-            justifyContent: 'center',
+            width: '100%',
             alignItems: 'center',
             gap: 20,
           }}
@@ -180,7 +159,7 @@ export default function LoginScreen(props, ref) {
           </Text>
           <View
             style={{
-              width: '80%',
+              width: '100%',
               borderRadius: 5,
               borderWidth: 1,
               overflow: 'hidden',
@@ -192,21 +171,56 @@ export default function LoginScreen(props, ref) {
             duration={500}
           >
             <TextInput
+              ref={emailInputRef}
               syncLight
-              onChangeText={(text) => {
-                setEmailValue(text);
+              onChange={(e) => {
+                console.log('onChange');
               }}
-              value={emailValue}
+              onBlur={() => {
+                if (emailValue.current.length === 0) {
+                  emailInputRef.current.clear();
+                  setEmailError(false);
+                  setLoginButtonDisabled(true);
+                }
+              }}
+              onChangeText={(text) => {
+                emailValue.current = text;
+                if (
+                  emailRegex.test(emailValue.current) &&
+                  passwordRegex.test(passwordValue.current)
+                ) {
+                  if (emailError === true && passwordError === false) {
+                    setLoginButtonDisabled(false);
+                  }
+                }
+                if (emailError === true && emailRegex.test(text) === true) {
+                  setEmailError(false);
+                  console.log('noError');
+                } else if (
+                  emailError === false &&
+                  emailRegex.test(text) === false
+                ) {
+                  setEmailError(true);
+                  setLoginButtonDisabled(true);
+                  console.log('Error');
+                } else if (text.length === 0) {
+                  setEmailError(false);
+                  setLoginButtonDisabled(true);
+                  console.log('0Lenght');
+                }
+              }}
               placeholder="Имэйл хаяг"
               secureTextEntry={false}
+              autoCapitalize="none"
               autoComplete="email"
               inputMode="email"
               keyboardType="email-address"
               returnKeyType="next"
               enterKeyHint="next"
+              value={null}
               textContentType="emailAddress"
               onSubmitEditing={(e) => {
-                if (emailError === false && emailValue.length > 0) {
+                if (emailError === false && emailValue.current.length > 0) {
                   passwordInputRef.current.focus();
                 }
               }}
@@ -214,7 +228,7 @@ export default function LoginScreen(props, ref) {
           </View>
           <View
             style={{
-              width: '80%',
+              width: '100%',
               borderRadius: 5,
               borderWidth: 1,
               overflow: 'hidden',
@@ -228,10 +242,43 @@ export default function LoginScreen(props, ref) {
             <TextInput
               ref={passwordInputRef}
               syncLight
-              onChangeText={(text) => {
-                setPasswordValue(text);
+              onBlur={() => {
+                if (passwordValue.current.length === 0) {
+                  passwordInputRef.current.clear();
+                  setPasswordError(false);
+                  setLoginButtonDisabled(true);
+                }
               }}
-              value={passwordValue}
+              onChangeText={(text) => {
+                passwordValue.current = text;
+                if (
+                  emailRegex.test(emailValue.current) &&
+                  passwordRegex.test(passwordValue.current)
+                ) {
+                  if (emailError === false && passwordError === true) {
+                    setLoginButtonDisabled(false);
+                  }
+                }
+                if (
+                  passwordError === true &&
+                  passwordRegex.test(text) === true
+                ) {
+                  setPasswordError(false);
+                  console.log('noError');
+                } else if (
+                  passwordError === false &&
+                  passwordRegex.test(text) === false
+                ) {
+                  setPasswordError(true);
+                  setLoginButtonDisabled(true);
+                  console.log('Error');
+                } else if (text.length === 0) {
+                  setPasswordError(false);
+                  setLoginButtonDisabled(true);
+                  console.log('0Lenght');
+                }
+              }}
+              autoCapitalize="none"
               placeholder="Нууц үг"
               secureTextEntry
               autoComplete="password"
@@ -244,7 +291,7 @@ export default function LoginScreen(props, ref) {
           </View>
           <View
             style={{
-              minWidth: '80%',
+              width: '100%',
               flexDirection: 'row',
               justifyContent: 'space-between',
             }}
@@ -270,8 +317,7 @@ export default function LoginScreen(props, ref) {
 
           <View
             style={{
-              minWidth: '80%',
-              maxWidth: '80%',
+              width: '100%',
               flexDirection: 'row',
               gap: '5%',
             }}
@@ -367,7 +413,7 @@ export default function LoginScreen(props, ref) {
         </View>
 
         <View
-          style={{ width: '80%', flexDirection: 'row', alignItems: 'center' }}
+          style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
         >
           <View
             style={{
@@ -398,21 +444,21 @@ export default function LoginScreen(props, ref) {
         </View>
         <Button
           onPress={() => {
-            console.log(true);
+            router.push('5/RegisterScreen');
           }}
           style={{
             padding: 20,
-            width: '80%',
+            width: '100%',
             borderRadius: 5,
           }}
           syncLight
         >
-          <Text style={{ textAlign: 'center' }} syncLight onPress={() => {}}>
+          <Text style={{ textAlign: 'center' }} syncLight>
             Бүртгүүлэх
           </Text>
         </Button>
         <View
-          style={{ width: '80%', flexDirection: 'row', alignItems: 'center' }}
+          style={{ width: '100%', flexDirection: 'row', alignItems: 'center' }}
         >
           <View
             style={{
@@ -441,7 +487,14 @@ export default function LoginScreen(props, ref) {
             }}
           ></View>
         </View>
-        <View style={{ maxWidth: '80%', flexDirection: 'row', gap: 20 }}>
+        <View
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            gap: 20,
+          }}
+        >
           <Pressable
             style={{
               padding: 10,

@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Appearance } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { Text } from '../components/Text';
 import { TextInput } from '../components/TextInput';
@@ -19,7 +20,7 @@ import LoginScreen from './LoginScreen';
 import { BlurTargetView } from 'expo-blur';
 import ProfileScreen from './ProfileScreen';
 
-export default function Index() {
+export default function index() {
   const user = useUserStore((state) => state.user);
 
   const isLight = useThemeStore((state) => state.isLight);
@@ -42,6 +43,8 @@ export default function Index() {
   const scrollBlurTargetRef = useRef(null);
 
   useEffect(() => {
+    setNavigatorIndex(0);
+    setIndex(0);
     const colorsSchemeSub = Appearance.addChangeListener(({ colorScheme }) => {
       setLight(colorScheme === 'light' ? true : false);
     });
@@ -54,6 +57,7 @@ export default function Index() {
     scrollRef.current.scrollTo({
       x: scrollWidthRef.current * index,
       animated: false,
+      deprecatedAnimated: false,
     });
     setNavigatorIndex(index);
     scrollIsDragged.current = false;
@@ -115,28 +119,22 @@ export default function Index() {
               setIndex(innerIndex);
             }}
             contentContainerStyle={{
-              maxHeight: '100%',
-              minHeight: '100%',
-              minWidth: '500%',
-              maxWidth: '500%',
+              height: '100%',
+              width: '500%'
             }}
           >
             <View
               style={{
-                minHeight: '100%',
-                maxHeight: '100%',
-                minWidth: '20%',
-                maxWidth: '20%',
+                height: '100%',
+                width: '20%'
               }}
             >
               <AdsScreen />
             </View>
             <View
               style={{
-                minHeight: '100%',
-                maxHeight: '100%',
-                minWidth: '20%',
-                maxWidth: '20%',
+                height: '100%',
+                width: '20%',
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -147,10 +145,8 @@ export default function Index() {
             </View>
             <View
               style={{
-                minHeight: '100%',
-                maxHeight: '100%',
-                minWidth: '20%',
-                maxWidth: '20%',
+                height: '100%',
+                width: '20%',
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -159,10 +155,8 @@ export default function Index() {
             </View>
             <View
               style={{
-                minHeight: '100%',
-                maxHeight: '100%',
-                minWidth: '20%',
-                maxWidth: '20%',
+                height: '100%',
+                width: '20%',
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -171,10 +165,8 @@ export default function Index() {
             </View>
             <View
               style={{
-                minHeight: '100%',
-                maxHeight: '100%',
-                minWidth: '20%',
-                maxWidth: '20%',
+                height: '100%',
+                width: '20%',
                 justifyContent: 'center',
                 alignItems: 'center',
               }}

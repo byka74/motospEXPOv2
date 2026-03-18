@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   cubicBezier,
 } from 'react-native-reanimated';
-import { useEffect, useState, useRef, useMemo, memo } from 'react';
+import { useEffect, useState, useRef, useMemo, memo, forwardRef } from 'react';
 
 import { useThemeStore } from '../zustand/context';
 import { Text } from './Text';
@@ -55,6 +55,7 @@ const TextInputRender = (props, ref) => {
   const isLight = useThemeStore((state) => state.isLight);
   const [isFocus, setFocus] = useState(false);
   const value = useRef('');
+  const localRef = useRef(null);
 
   // Стилийн тооцооллыг useMemo-д багтаавал илүү цэвэрхэн
   const memoizedLayoutStyle = useMemo(() => {
@@ -137,6 +138,11 @@ const TextInputRender = (props, ref) => {
     return animate === true ? ['all'] : ['none'];
   }, [animate]);
 
+  useEffect(() => {
+    setFocus(false);
+    value.current = '';
+  }, []);
+
   return (
     <AnimatedView
       style={[
@@ -163,7 +169,12 @@ const TextInputRender = (props, ref) => {
         {placeholder}
       </Text>
       <AnimatedTextInput
-        ref={ref}
+        ref={(node) => {
+          node.clear();
+          value.current = '';
+          setFocus(false);
+          ref.current = node;
+        }}
         style={[
           memoizedTextStyle,
           {
@@ -183,6 +194,7 @@ const TextInputRender = (props, ref) => {
         includeFontPadding={false}
         onChangeText={(text) => {
           value.current = text;
+          console.log('OnchageText TEST');
           if (onChangeText) {
             onChangeText(text);
           }
