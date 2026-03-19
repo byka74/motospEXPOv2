@@ -67,39 +67,31 @@ export default function LoginScreen(props, ref) {
     setLoginLoading(true);
     try {
       const res = await axios.post(
-        'http://192.168.1.45:3099/api/v1/login',
+        'http://192.168.1.45:3099/api/v1/user/login',
         { identifier: emailValue.current, password: passwordValue.current },
         {
           withCredentials: true,
           headers: { 'Content-Type': 'application/json' },
         },
       );
-      const data = res.data;
-      if (res.status === 200) {
-        const accessToken = data.data[0].accessToken ?? null;
-        const refreshToken = data.data[0].refreshToken ?? null;
-        console.log(accessToken, refreshToken);
-        emailInputRef.current.clear();
-        passwordInputRef.current.clear();
-        emailValue.current = '';
-        passwordValue.current = '';
-        /*         if (
-          typeof data === 'object' &&
-          accessToken != null &&
-          refreshToken != null
-        ) {
-          await SecureStore.setItemAsync('user_token', JSON.stringify(data));
-          const userData = { accessToken, refreshToken };
-          setUserLoggedIn(true);
-          setUser({ ...user, ...userData });
-        } else {
-          await SecureStore.deleteItemAsync('user_token');
-          setUserLoggedIn(false);
-          setUser(null);
-        } */
+      const dataAxios = res.data;
+      if (dataAxios.error != null && dataAxios.error === false) {
+        const accessToken = dataAxios.data[0].accessToken;
+        const refreshToken = dataAxios.data[0].refreshToken;
+        await SecureStore.setItemAsync(
+          'user_token',
+          JSON.stringify(dataAxios.data[0]),
+        );
+        const userData = { accessToken, refreshToken };
+        setUserLoggedIn(true);
+        setUser({ ...user, ...userData });
+      } else {
+        await SecureStore.deleteItemAsync('user_token');
+        setUserLoggedIn(false);
+        setUser(null);
       }
-    } catch (e) {
-      console.log(e.response.data.errorMessage);
+    } catch (error) {
+      console.log(error.response.data.message);
     } finally {
       setLoginLoading(false);
     }
@@ -110,7 +102,6 @@ export default function LoginScreen(props, ref) {
     passwordInputRef.current.clear();
     emailValue.current = '';
     passwordValue.current = '';
-    console.log('cleared by init');
   }, []);
 
   useEffect(() => {
@@ -118,7 +109,6 @@ export default function LoginScreen(props, ref) {
     passwordInputRef.current.clear();
     emailValue.current = '';
     passwordValue.current = '';
-    console.log('cleared by user');
   }, [user]);
 
   return (
@@ -173,9 +163,6 @@ export default function LoginScreen(props, ref) {
             <TextInput
               ref={emailInputRef}
               syncLight
-              onChange={(e) => {
-                console.log('onChange');
-              }}
               onBlur={() => {
                 if (emailValue.current.length === 0) {
                   emailInputRef.current.clear();
@@ -195,18 +182,15 @@ export default function LoginScreen(props, ref) {
                 }
                 if (emailError === true && emailRegex.test(text) === true) {
                   setEmailError(false);
-                  console.log('noError');
                 } else if (
                   emailError === false &&
                   emailRegex.test(text) === false
                 ) {
                   setEmailError(true);
                   setLoginButtonDisabled(true);
-                  console.log('Error');
                 } else if (text.length === 0) {
                   setEmailError(false);
                   setLoginButtonDisabled(true);
-                  console.log('0Lenght');
                 }
               }}
               placeholder="Имэйл хаяг"
@@ -264,18 +248,15 @@ export default function LoginScreen(props, ref) {
                   passwordRegex.test(text) === true
                 ) {
                   setPasswordError(false);
-                  console.log('noError');
                 } else if (
                   passwordError === false &&
                   passwordRegex.test(text) === false
                 ) {
                   setPasswordError(true);
                   setLoginButtonDisabled(true);
-                  console.log('Error');
                 } else if (text.length === 0) {
                   setPasswordError(false);
                   setLoginButtonDisabled(true);
-                  console.log('0Lenght');
                 }
               }}
               autoCapitalize="none"

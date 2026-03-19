@@ -170,9 +170,6 @@ const TextInputRender = (props, ref) => {
       </Text>
       <AnimatedTextInput
         ref={(node) => {
-          node.clear();
-          value.current = '';
-          setFocus(false);
           ref.current = node;
         }}
         style={[
