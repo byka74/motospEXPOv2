@@ -1,4 +1,4 @@
-import { TextInput as ReactTextInput, View } from 'react-native';
+import { TextInput as ReactTextInput, View, Keyboard } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -6,7 +6,15 @@ import Animated, {
   useSharedValue,
   cubicBezier,
 } from 'react-native-reanimated';
-import { useEffect, useState, useRef, useMemo, memo, forwardRef } from 'react';
+import {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  memo,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 
 import { useThemeStore } from '../zustand/context';
 import { Text } from './Text';
@@ -34,7 +42,8 @@ const AnimatedView = Animated.createAnimatedComponent(View);
  * @param {TextInputComponentProps} props
  */
 
-const TextInputRender = (props, ref) => {
+const TextInputRender = forwardRef((props, ref) => {
+  const [valueState, setValueState] = useState('');
   const {
     style = null,
     animate = null,
@@ -49,13 +58,18 @@ const TextInputRender = (props, ref) => {
     onFocus,
     onChangeText,
     syncLight,
+    error = false,
+    value = null,
     ...restProps
   } = props;
 
   const isLight = useThemeStore((state) => state.isLight);
   const [isFocus, setFocus] = useState(false);
-  const value = useRef('');
-  const localRef = useRef(null);
+  const [clear, setClear] = useState(false);
+  const [localError, setLocalError] = useState(
+    typeof error === 'boolean' ? error : false,
+  );
+  const infernalInputRef = useRef(null);
 
   // Стилийн тооцооллыг useMemo-д багтаавал илүү цэвэрхэн
   const memoizedLayoutStyle = useMemo(() => {
@@ -99,8 +113,15 @@ const TextInputRender = (props, ref) => {
 
     if (syncLight) {
       finalStyle.backgroundColor = isLight
-        ? 'rgb(240,240,240)'
+        ? 'rgb(235,235,235)'
         : 'rgb(80, 80, 80)';
+    }
+    finalStyle.borderWidth = 1;
+    finalStyle.borderColor = '#ffffff00';
+
+    if (error) {
+      finalStyle.borderColor = '#ff1119';
+      finalStyle.borderWidth = 1;
     }
 
     return finalStyle;
@@ -111,6 +132,7 @@ const TextInputRender = (props, ref) => {
     const finalStyle = { ...style, ...animate };
 
     finalStyle.fontSize = 12;
+    finalStyle.paddingHorizontal = 20;
 
     if (syncLight) {
       finalStyle.color = isLight ? 'rgb(0, 0, 0)' : 'rgb(255,255,255)';
@@ -130,7 +152,7 @@ const TextInputRender = (props, ref) => {
       finalStyle.lineHeight = finalStyle.fontSize;
 
     return finalStyle;
-  }, [style, animate, isLight, syncLight]);
+  }, [style, animate, isLight, syncLight, error]);
 
   const transitionProperty = useMemo(() => {
     if (!animate) return ['none'];
@@ -138,10 +160,37 @@ const TextInputRender = (props, ref) => {
     return animate === true ? ['all'] : ['none'];
   }, [animate]);
 
+  // 2. Гаднаас хандах боломжтой функцүүдийг энд тодорхойлно
+  useImperativeHandle(ref, () => ({
+    clear: () => {
+      setValueState('');
+      setFocus(false); // Текст цэвэрлэх үед placeholder-ийг буцааж байранд нь оруулна
+      Keyboard.dismiss();
+      infernalInputRef.current.blur();
+    },
+    getValue: () => {
+      return valueState;
+    },
+    focus: () => {
+      infernalInputRef.current.focus();
+    },
+    blur: () => {
+      infernalInputRef.current.blur();
+    },
+  }));
+
   useEffect(() => {
-    setFocus(false);
-    value.current = '';
-  }, []);
+    if (typeof onChangeText === 'function') {
+      onChangeText(valueState);
+    }
+    if (!isFocus && valueState.length > 0) {
+      console.log(valueState);
+      setFocus(true);
+    }
+    if (!isFocus && valueState.length === 0) {
+      setFocus(false);
+    }
+  }, [valueState, isFocus]);
 
   return (
     <AnimatedView
@@ -169,9 +218,7 @@ const TextInputRender = (props, ref) => {
         {placeholder}
       </Text>
       <AnimatedTextInput
-        ref={(node) => {
-          ref.current = node;
-        }}
+        ref={infernalInputRef}
         style={[
           memoizedTextStyle,
           {
@@ -190,11 +237,7 @@ const TextInputRender = (props, ref) => {
         placeholder={placeholder}
         includeFontPadding={false}
         onChangeText={(text) => {
-          value.current = text;
-          console.log('OnchageText TEST');
-          if (onChangeText) {
-            onChangeText(text);
-          }
+          setValueState(text);
         }}
         onFocus={() => {
           setFocus(true);
@@ -203,9 +246,10 @@ const TextInputRender = (props, ref) => {
           }
         }}
         onBlur={(e) => {
-          if (value.current.length === 0) setFocus(false);
+          if (valueState.length === 0) setFocus(false);
           if (onBlur) onBlur();
         }}
+        value={valueState}
         placeholderTextColor={'rgba(0,0,0,0)'}
         {...restProps}
       >
@@ -224,7 +268,11 @@ const TextInputRender = (props, ref) => {
           transformOrigin: 'left top',
         }}
         animate={{
-          opacity: isFocus ? 0.5 : 1,
+          color: error
+            ? 'rgb(255,0,0)'
+            : isLight
+              ? 'rgb(0,0,0)'
+              : 'rgb(255,255,255)',
           transform: [
             { translateX: 25 },
             { translateY: isFocus ? 10 : '175%' },
@@ -237,7 +285,7 @@ const TextInputRender = (props, ref) => {
       </Text>
     </AnimatedView>
   );
-};
+});
 
 TextInputRender.displayName = 'CustomTextInputComponent';
 

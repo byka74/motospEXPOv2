@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { ScrollView, Pressable } from 'react-native';
+import { ScrollView, Pressable, Alert } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Appearance } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Appearance, BackHandler } from 'react-native';
+import { useRouter, router, usePathname } from 'expo-router';
 
 import { Text } from '../components/Text';
 import { TextInput } from '../components/TextInput';
@@ -42,16 +42,37 @@ export default function index() {
   const scrollNavigatorIndexPrev = useRef(0);
   const scrollBlurTargetRef = useRef(null);
 
+  const pathNameIs = usePathname();
+
   useEffect(() => {
     setNavigatorIndex(0);
     setIndex(0);
     const colorsSchemeSub = Appearance.addChangeListener(({ colorScheme }) => {
       setLight(colorScheme === 'light' ? true : false);
     });
+
     return () => {
       colorsSchemeSub.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const backhandlerSub = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (pathNameIs === '/' && index !== 0) {
+          setIndex(0);
+          return true;
+        }
+        if (!router.canGoBack() && index === 0) {
+          return false;
+        }
+      },
+    );
+    return () => {
+      backhandlerSub.remove();
+    };
+  }, [pathNameIs, index]);
 
   useEffect(() => {
     scrollRef.current.scrollTo({
@@ -120,13 +141,13 @@ export default function index() {
             }}
             contentContainerStyle={{
               height: '100%',
-              width: '500%'
+              width: '500%',
             }}
           >
             <View
               style={{
                 height: '100%',
-                width: '20%'
+                width: '20%',
               }}
             >
               <AdsScreen />

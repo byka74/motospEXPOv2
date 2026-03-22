@@ -47,6 +47,7 @@ export const useThemeStore = create((set) => ({
  * @property {function(number): void} setIndex - Индекс шинэчлэх функц
  * @property {number} navigatorIndex - Навигатор индекс
  * @property {function(number): void} setNavigatorIndex - Навигатор индекс шинэчлэх функц
+ * @property {string} apiurl - Навигатор индекс
  */
 
 /** @type {import('zustand').UseBoundStore<import('zustand').StoreApi<GlobalState>>} */
@@ -55,4 +56,5 @@ export const useGlobalState = create((set) => ({
   setIndex: (data) => set({ index: data }),
   navigatorIndex: 0,
   setNavigatorIndex: (data) => set({ navigatorIndex: data }),
+  apiurl: 'https://api-endpoint.motosp.mn'
 }));

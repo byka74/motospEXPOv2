@@ -87,13 +87,9 @@ function StackComponent() {
         'worklet';
         // Дуудах болгондоо withTiming бичихгүйгээр утгыг нь шууд оноож болно
         // Гэхдээ илүү smooth болгохын тулд duration-ийг e.duration-оос авсан нь дээр
-        heightValue.value = withTiming(Math.abs(e.height), {
-          duration: e.duration > 0 ? e.duration : 250,
-          easing: Easing.out(Easing.exp),
-          reduceMotion: ReduceMotion.System,
-        });
         if (e.progress === 1 || e.progress === 0) {
-          paddingValue.value = Math.abs(e.height);
+          heightValue.value = e.height;
+          paddingValue.value = e.height;
         }
       },
     },
@@ -108,19 +104,18 @@ function StackComponent() {
     };
   });
 
-
   return (
-    <Animated.View style={animatedHeight}>
-      <Animated.View style={{height: paddingValue}}></Animated.View>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'simple_push',
-          keyboardHandlingEnabled: true
-        }}
-      >
-        <Stack.Screen name="index" />
-      </Stack>
-    </Animated.View>
+    <KeyboardProvider>
+      <Animated.View style={animatedHeight}>
+        <Animated.View style={{ height: paddingValue }}></Animated.View>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'simple_push',
+            keyboardHandlingEnabled: true,
+          }}
+        ></Stack>
+      </Animated.View>
+    </KeyboardProvider>
   );
 }

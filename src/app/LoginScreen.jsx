@@ -19,15 +19,14 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import Checkbox from '../components/Checkbox';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 
 export default function LoginScreen(props, ref) {
   const navigatorIndex = useGlobalState((data) => data.navigatorIndex);
   const isLight = useThemeStore((data) => data.isLight);
   const navigatorHeight = useThemeStore((data) => data.navigatorHeight);
   const insets = useSafeAreaInsets();
-  const emailValue = useRef('');
-  const passwordValue = useRef('');
+  const pathNameIs = usePathname();
   // 1. Имэйл шалгах Regex (Стандарт формат)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -43,10 +42,11 @@ export default function LoginScreen(props, ref) {
   const emailInputRef = useRef(null);
   const passwordInputRef = useRef(null);
 
-  const [biometricStatus, setBiometricStatus] = useState(false);
+  const [isBiometricDevice, setBiometricDevice] = useState(false);
   const [saveBiometric, setSaveBiometric] = useState(false);
 
-  const [checkbox, setCheckbox] = useState(false);
+  const [isRemember, setRemember] = useState(false);
+
   const [isLoginLoading, setLoginLoading] = useState(false);
 
   const isUserLoggedIn = useUserStore((data) => data.isUserLoggedIn);
@@ -54,62 +54,72 @@ export default function LoginScreen(props, ref) {
   const user = useUserStore((data) => data.user);
   const setUser = useUserStore((data) => data.setUser);
 
+  const apiurl = useGlobalState((data) => data.apiurl);
+
   useEffect(() => {
     const isAvailable = SecureStore.isAvailableAsync();
     if (isAvailable) {
-      setBiometricStatus(true);
+      setBiometricDevice(true);
     } else {
-      setBiometricStatus(false);
+      setBiometricDevice(false);
     }
   }, [navigatorIndex]);
 
+  useEffect(() => {
+    if (
+      emailRegex.test(emailInputRef.current.getValue()) &&
+      passwordRegex.test(passwordInputRef.current.getValue())
+    ) {
+      setLoginButtonDisabled(false);
+    } else {
+      setLoginButtonDisabled(true);
+    }
+  }, [passwordError, emailError]);
+
   const loginHandler = async () => {
-    setLoginLoading(true);
-    try {
-      const res = await axios.post(
-        'http://192.168.1.45:3099/api/v1/user/login',
-        { identifier: emailValue.current, password: passwordValue.current },
-        {
-          withCredentials: true,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
-      const dataAxios = res.data;
-      if (dataAxios.error != null && dataAxios.error === false) {
-        const accessToken = dataAxios.data[0].accessToken;
-        const refreshToken = dataAxios.data[0].refreshToken;
-        await SecureStore.setItemAsync(
-          'user_token',
-          JSON.stringify(dataAxios.data[0]),
-        );
-        const userData = { accessToken, refreshToken };
-        setUserLoggedIn(true);
-        setUser({ ...user, ...userData });
-      } else {
-        await SecureStore.deleteItemAsync('user_token');
-        setUserLoggedIn(false);
-        setUser(null);
-      }
-    } catch (error) {
-      console.log(error.response.data.message);
-    } finally {
-      setLoginLoading(false);
+    if (
+      !isLoginLoading &&
+      !loginButtonDisabled &&
+      emailRegex.test(emailInputRef.current.getValue()) &&
+      passwordRegex.test(passwordInputRef.current.getValue())
+    ) {
+      setLoginLoading(true);
+      axios
+        .post(
+          apiurl + '/api/v1/user/login',
+          {
+            identifier: emailInputRef.current.getValue(),
+            password: passwordInputRef.current.getValue(),
+            isRemember: isRemember,
+          },
+          { timeout: 5000 },
+        )
+        .then((response) => {
+          console.log(response.data);
+          emailInputRef.current.clear();
+          passwordInputRef.current.clear();
+          setLoginButtonDisabled(true);
+          setRemember(false);
+          const data = response.data;
+          if (response.status === 200) {
+          }
+          setSaveBiometric(false);
+        })
+        .catch((error) => {
+          console.log(error.response.data);
+          setEmailError(true);
+          setPasswordError(true);
+          setLoginButtonDisabled(true);
+          setUserLoggedIn(false);
+        })
+        .finally(() => {
+          setLoginLoading(false);
+        });
     }
   };
-
   useEffect(() => {
-    emailInputRef.current.clear();
-    passwordInputRef.current.clear();
-    emailValue.current = '';
-    passwordValue.current = '';
-  }, []);
-
-  useEffect(() => {
-    emailInputRef.current.clear();
-    passwordInputRef.current.clear();
-    emailValue.current = '';
-    passwordValue.current = '';
-  }, [user]);
+    console.log(saveBiometric);
+  }, [saveBiometric]);
 
   return (
     <ScrollView
@@ -138,9 +148,16 @@ export default function LoginScreen(props, ref) {
           <Text
             style={{ fontSize: 48, fontFamily: 'bold', paddingVertical: 60 }}
             animate={{
-              opacity: navigatorIndex === 4 ? 1 : 0,
-              transform: [{ translateY: navigatorIndex === 4 ? 0 : -50 }],
-              filter: [{ blur: navigatorIndex === 4 ? 0 : 10 }],
+              opacity: navigatorIndex === 4 && pathNameIs === '/' ? 1 : 0,
+              transform: [
+                {
+                  translateY:
+                    navigatorIndex === 4 && pathNameIs === '/' ? 0 : -50,
+                },
+              ],
+              filter: [
+                { blur: navigatorIndex === 4 && pathNameIs === '/' ? 0 : 20 },
+              ],
             }}
             duration={1000}
             syncLight
@@ -163,34 +180,11 @@ export default function LoginScreen(props, ref) {
             <TextInput
               ref={emailInputRef}
               syncLight
-              onBlur={() => {
-                if (emailValue.current.length === 0) {
-                  emailInputRef.current.clear();
-                  setEmailError(false);
-                  setLoginButtonDisabled(true);
-                }
-              }}
               onChangeText={(text) => {
-                emailValue.current = text;
-                if (
-                  emailRegex.test(emailValue.current) &&
-                  passwordRegex.test(passwordValue.current)
-                ) {
-                  if (emailError === true && passwordError === false) {
-                    setLoginButtonDisabled(false);
-                  }
-                }
-                if (emailError === true && emailRegex.test(text) === true) {
-                  setEmailError(false);
-                } else if (
-                  emailError === false &&
-                  emailRegex.test(text) === false
-                ) {
+                if (text.length > 0 && !emailRegex.test(text)) {
                   setEmailError(true);
-                  setLoginButtonDisabled(true);
-                } else if (text.length === 0) {
+                } else {
                   setEmailError(false);
-                  setLoginButtonDisabled(true);
                 }
               }}
               placeholder="Имэйл хаяг"
@@ -201,12 +195,10 @@ export default function LoginScreen(props, ref) {
               keyboardType="email-address"
               returnKeyType="next"
               enterKeyHint="next"
-              value={null}
+              error={emailError}
               textContentType="emailAddress"
               onSubmitEditing={(e) => {
-                if (emailError === false && emailValue.current.length > 0) {
-                  passwordInputRef.current.focus();
-                }
+                passwordInputRef.current.focus();
               }}
             ></TextInput>
           </View>
@@ -226,37 +218,11 @@ export default function LoginScreen(props, ref) {
             <TextInput
               ref={passwordInputRef}
               syncLight
-              onBlur={() => {
-                if (passwordValue.current.length === 0) {
-                  passwordInputRef.current.clear();
-                  setPasswordError(false);
-                  setLoginButtonDisabled(true);
-                }
-              }}
               onChangeText={(text) => {
-                passwordValue.current = text;
-                if (
-                  emailRegex.test(emailValue.current) &&
-                  passwordRegex.test(passwordValue.current)
-                ) {
-                  if (emailError === false && passwordError === true) {
-                    setLoginButtonDisabled(false);
-                  }
-                }
-                if (
-                  passwordError === true &&
-                  passwordRegex.test(text) === true
-                ) {
-                  setPasswordError(false);
-                } else if (
-                  passwordError === false &&
-                  passwordRegex.test(text) === false
-                ) {
+                if (text.length > 0 && !passwordRegex.test(text)) {
                   setPasswordError(true);
-                  setLoginButtonDisabled(true);
-                } else if (text.length === 0) {
+                } else {
                   setPasswordError(false);
-                  setLoginButtonDisabled(true);
                 }
               }}
               autoCapitalize="none"
@@ -268,6 +234,7 @@ export default function LoginScreen(props, ref) {
               returnKeyType="done"
               enterKeyHint="done"
               textContentType="password"
+              error={passwordError}
             ></TextInput>
           </View>
           <View
@@ -281,10 +248,10 @@ export default function LoginScreen(props, ref) {
               hitSlop={8}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
               onPress={() => {
-                setCheckbox((prev) => (prev ? false : true));
+                setRemember((prev) => (prev ? false : true));
               }}
             >
-              <Checkbox checked={checkbox} size={20} />
+              <Checkbox checked={isRemember} size={20} />
               <Text syncLight>Нэвтрэлт сануулах</Text>
             </Button>
             <Button
@@ -305,28 +272,21 @@ export default function LoginScreen(props, ref) {
           >
             <Button
               onPress={() => {
-                if (loginButtonDisabled === false && isLoginLoading === false) {
-                  loginHandler();
-                }
+                loginHandler();
               }}
               style={{
                 padding: 20,
-                width: biometricStatus ? '75%' : '100%',
+                width: isBiometricDevice ? '75%' : '100%',
                 borderRadius: 5,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
               animate={{
-                backgroundColor:
-                  loginButtonDisabled === true
-                    ? isLight
-                      ? 'rgb(200,200,200)'
-                      : 'rgb(80,80,80)'
-                    : isLoginLoading
-                      ? isLight
-                        ? 'rgb(200,200,200)'
-                        : 'rgb(80,80,80)'
-                      : '#ff1119',
+                backgroundColor: loginButtonDisabled
+                  ? isLight
+                    ? 'rgb(180,180,180)'
+                    : 'rgb(120,120,120)'
+                  : '#ff1119',
               }}
               duration={500}
             >
@@ -354,7 +314,7 @@ export default function LoginScreen(props, ref) {
                 </Text>
               )}
             </Button>
-            {biometricStatus ? (
+            {isBiometricDevice ? (
               <Button
                 style={{
                   width: '20%',
@@ -425,7 +385,7 @@ export default function LoginScreen(props, ref) {
         </View>
         <Button
           onPress={() => {
-            router.push('5/RegisterScreen');
+            router.push('RegisterScreen');
           }}
           style={{
             padding: 20,
